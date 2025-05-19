@@ -1,5 +1,5 @@
 import pytest
-from intervention import Intervention, Stage, InterventionTheme
+from service.intervention import Intervention, Stage, InterventionTheme
 
 
 class DummyTheme(InterventionTheme):
