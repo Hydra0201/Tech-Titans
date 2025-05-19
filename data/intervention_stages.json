@@ -1,0 +1,1337 @@
+[
+    {
+        "stage_name": "Structural Optimisation - Stage 01 - vertical improvement",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Removing transfer structure and slab optimizing"
+        ]
+    },
+    {
+        "stage_name": "Structural Optimisation - Stage 02 - Removing transfer structure and slab optimizing",
+        "prerequisite": "Stage 01 - vertical improvement",
+        "exclusive_with": [
+            "Stage 01 - vertical improvement"
+        ]
+    },
+    {
+        "stage_name": "Local Procurement and use of low carbon materials including natural, recycled and refurbished materials - Stage 01 - Low target use",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Medium target use",
+            "Stage 03 - Maximum target use"
+        ]
+    },
+    {
+        "stage_name": "Local Procurement and use of low carbon materials including natural, recycled and refurbished materials - Stage 02 - Medium target use",
+        "prerequisite": "Stage 01 - Low target use",
+        "exclusive_with": [
+            "Stage 01 - Low target use",
+            "Stage 03 - Maximum target use"
+        ]
+    },
+    {
+        "stage_name": "Local Procurement and use of low carbon materials including natural, recycled and refurbished materials - Stage 03 - Maximum target use",
+        "prerequisite": "Stage 02 - Medium target use",
+        "exclusive_with": [
+            "Stage 01 - Low target use",
+            "Stage 02 - Medium target use"
+        ]
+    },
+    {
+        "stage_name": "Glazing ratio improvement - ~50% of fa\u00e7ade glazed",
+        "prerequisite": null,
+        "exclusive_with": [
+            "~45% of fa\u00e7ade glazed",
+            "~40% of fa\u00e7ade glazed",
+            "~35% of fa\u00e7ade glazed",
+            "~30% of fa\u00e7ade glazed"
+        ]
+    },
+    {
+        "stage_name": "Glazing ratio improvement - ~45% of fa\u00e7ade glazed",
+        "prerequisite": "~50% of fa\u00e7ade glazed",
+        "exclusive_with": [
+            "~50% of fa\u00e7ade glazed",
+            "~40% of fa\u00e7ade glazed",
+            "~35% of fa\u00e7ade glazed",
+            "~30% of fa\u00e7ade glazed"
+        ]
+    },
+    {
+        "stage_name": "Glazing ratio improvement - ~40% of fa\u00e7ade glazed",
+        "prerequisite": "~45% of fa\u00e7ade glazed",
+        "exclusive_with": [
+            "~50% of fa\u00e7ade glazed",
+            "~45% of fa\u00e7ade glazed",
+            "~35% of fa\u00e7ade glazed",
+            "~30% of fa\u00e7ade glazed"
+        ]
+    },
+    {
+        "stage_name": "Glazing ratio improvement - ~35% of fa\u00e7ade glazed",
+        "prerequisite": "~40% of fa\u00e7ade glazed",
+        "exclusive_with": [
+            "~50% of fa\u00e7ade glazed",
+            "~45% of fa\u00e7ade glazed",
+            "~40% of fa\u00e7ade glazed",
+            "~30% of fa\u00e7ade glazed"
+        ]
+    },
+    {
+        "stage_name": "Glazing ratio improvement - ~30% of fa\u00e7ade glazed",
+        "prerequisite": "~35% of fa\u00e7ade glazed",
+        "exclusive_with": [
+            "~50% of fa\u00e7ade glazed",
+            "~45% of fa\u00e7ade glazed",
+            "~40% of fa\u00e7ade glazed",
+            "~35% of fa\u00e7ade glazed"
+        ]
+    },
+    {
+        "stage_name": "External Wall U-Value enhancements - Stage 01: U-Value <0.18w/m2.k",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02: U-Value <0.17w/m2.k",
+            "Stage 03: U-Value <0.16w/m2.k"
+        ]
+    },
+    {
+        "stage_name": "External Wall U-Value enhancements - Stage 02: U-Value <0.17w/m2.k",
+        "prerequisite": "Stage 01: U-Value <0.18w/m2.k",
+        "exclusive_with": [
+            "Stage 01: U-Value <0.18w/m2.k",
+            "Stage 03: U-Value <0.16w/m2.k"
+        ]
+    },
+    {
+        "stage_name": "External Wall U-Value enhancements - Stage 03: U-Value <0.16w/m2.k",
+        "prerequisite": "Stage 02: U-Value <0.17w/m2.k",
+        "exclusive_with": [
+            "Stage 01: U-Value <0.18w/m2.k",
+            "Stage 02: U-Value <0.17w/m2.k"
+        ]
+    },
+    {
+        "stage_name": "Glazing U-Value enhancements - Stage 01: U-Value <1.4w/m2.k (Double Glazed)",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02: U-Value <1.2w/m2.k (Double Glazed)",
+            "Stage 03: U-Value <1.0w/m2.k (Triple Glazed)"
+        ]
+    },
+    {
+        "stage_name": "Glazing U-Value enhancements - Stage 02: U-Value <1.2w/m2.k (Double Glazed)",
+        "prerequisite": "Stage 01: U-Value <1.4w/m2.k (Double Glazed)",
+        "exclusive_with": [
+            "Stage 01: U-Value <1.4w/m2.k (Double Glazed)",
+            "Stage 03: U-Value <1.0w/m2.k (Triple Glazed)"
+        ]
+    },
+    {
+        "stage_name": "Glazing U-Value enhancements - Stage 03: U-Value <1.0w/m2.k (Triple Glazed)",
+        "prerequisite": "Stage 02: U-Value <1.2w/m2.k (Double Glazed)",
+        "exclusive_with": [
+            "Stage 01: U-Value <1.4w/m2.k (Double Glazed)",
+            "Stage 02: U-Value <1.2w/m2.k (Double Glazed)"
+        ]
+    },
+    {
+        "stage_name": "Fa\u00e7ade Air-tightness - Stage 01: <3",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02: <2",
+            "Stage 03: <1 (values to be confirmed)"
+        ]
+    },
+    {
+        "stage_name": "Fa\u00e7ade Air-tightness - Stage 02: <2",
+        "prerequisite": "Stage 01: <3",
+        "exclusive_with": [
+            "Stage 01: <3",
+            "Stage 03: <1 (values to be confirmed)"
+        ]
+    },
+    {
+        "stage_name": "Fa\u00e7ade Air-tightness - Stage 03: <1 (values to be confirmed)",
+        "prerequisite": "Stage 02: <2",
+        "exclusive_with": [
+            "Stage 01: <3",
+            "Stage 02: <2"
+        ]
+    },
+    {
+        "stage_name": "Domestic Cold Water - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: minimise water wasteage",
+            "Stage 02b: Minimise pump energy consumption by reducing volume of water requiring movement"
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Lighting - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02: Simple lighting design utilising very low energy light fittings",
+            "Stage 03: Smart controls (Absence/ presence detection & daylight linking)",
+            "Stage 04: Circadian Controls"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+            "Stage 02b: Utlisation of low carbon energy sources",
+            "Stage 03a: Utilise existing district energy network",
+            "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+            "Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+        "prerequisite": "Stage 01: Provision in line with TRD",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02b: Utlisation of low carbon energy sources",
+            "Stage 03a: Utilise existing district energy network",
+            "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+            "Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 02b: Utlisation of low carbon energy sources",
+        "prerequisite": "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+            "Stage 03a: Utilise existing district energy network",
+            "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+            "Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 03a: Utilise existing district energy network",
+        "prerequisite": "Stage 02b: Utlisation of low carbon energy sources",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+            "Stage 02b: Utlisation of low carbon energy sources",
+            "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+            "Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+        "prerequisite": "Stage 03a: Utilise existing district energy network",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+            "Stage 02b: Utlisation of low carbon energy sources",
+            "Stage 03a: Utilise existing district energy network",
+            "Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads",
+        "prerequisite": "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+            "Stage 02b: Utlisation of low carbon energy sources",
+            "Stage 03a: Utilise existing district energy network",
+            "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water"
+        ]
+    },
+    {
+        "stage_name": "Heating & colling to building - Stage 01: VRF or HVRF system in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Upgrades to Facades (heat retention & air leakages)",
+            "Stage 02b: Utilisation of natural ventilation",
+            "Stage 03: Low SFP 4 pipe fan coil units utilising collth available from district energy networkl",
+            "Stage 04: Low SFP 4 pipe fan coil units utilising collth available from ASHPs/Chillers",
+            "Stage 05: LTHW radiant heating in large communal areas"
+        ]
+    },
+    {
+        "stage_name": "Heating & colling to building - Stage 02a: Upgrades to Facades (heat retention & air leakages)",
+        "prerequisite": "Stage 01: VRF or HVRF system in line with TRD",
+        "exclusive_with": [
+            "Stage 01: VRF or HVRF system in line with TRD",
+            "Stage 02b: Utilisation of natural ventilation",
+            "Stage 03: Low SFP 4 pipe fan coil units utilising collth available from district energy networkl",
+            "Stage 04: Low SFP 4 pipe fan coil units utilising collth available from ASHPs/Chillers",
+            "Stage 05: LTHW radiant heating in large communal areas"
+        ]
+    },
+    {
+        "stage_name": "Heating & colling to building - Stage 02b: Utilisation of natural ventilation",
+        "prerequisite": "Stage 02a: Upgrades to Facades (heat retention & air leakages)",
+        "exclusive_with": [
+            "Stage 01: VRF or HVRF system in line with TRD",
+            "Stage 02a: Upgrades to Facades (heat retention & air leakages)",
+            "Stage 03: Low SFP 4 pipe fan coil units utilising collth available from district energy networkl",
+            "Stage 04: Low SFP 4 pipe fan coil units utilising collth available from ASHPs/Chillers",
+            "Stage 05: LTHW radiant heating in large communal areas"
+        ]
+    },
+    {
+        "stage_name": "Heating & colling to building - Stage 03: Low SFP 4 pipe fan coil units utilising collth available from district energy networkl",
+        "prerequisite": "Stage 02b: Utilisation of natural ventilation",
+        "exclusive_with": [
+            "Stage 01: VRF or HVRF system in line with TRD",
+            "Stage 02a: Upgrades to Facades (heat retention & air leakages)",
+            "Stage 02b: Utilisation of natural ventilation",
+            "Stage 04: Low SFP 4 pipe fan coil units utilising collth available from ASHPs/Chillers",
+            "Stage 05: LTHW radiant heating in large communal areas"
+        ]
+    },
+    {
+        "stage_name": "Heating & colling to building - Stage 04: Low SFP 4 pipe fan coil units utilising collth available from ASHPs/Chillers",
+        "prerequisite": "Stage 03: Low SFP 4 pipe fan coil units utilising collth available from district energy networkl",
+        "exclusive_with": [
+            "Stage 01: VRF or HVRF system in line with TRD",
+            "Stage 02a: Upgrades to Facades (heat retention & air leakages)",
+            "Stage 02b: Utilisation of natural ventilation",
+            "Stage 03: Low SFP 4 pipe fan coil units utilising collth available from district energy networkl",
+            "Stage 05: LTHW radiant heating in large communal areas"
+        ]
+    },
+    {
+        "stage_name": "Heating & colling to building - Stage 05: LTHW radiant heating in large communal areas",
+        "prerequisite": "Stage 04: Low SFP 4 pipe fan coil units utilising collth available from ASHPs/Chillers",
+        "exclusive_with": [
+            "Stage 01: VRF or HVRF system in line with TRD",
+            "Stage 02a: Upgrades to Facades (heat retention & air leakages)",
+            "Stage 02b: Utilisation of natural ventilation",
+            "Stage 03: Low SFP 4 pipe fan coil units utilising collth available from district energy networkl",
+            "Stage 04: Low SFP 4 pipe fan coil units utilising collth available from ASHPs/Chillers"
+        ]
+    },
+    {
+        "stage_name": "Ventilation Systems - Stage 01: Minimising volume of air that needs to be moved (with consideration to wellbeing) including fan power consumption and use of natural ventilation",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02: Mixed mode ventilation with smart controls to minimise reliance on mechanical ventilation (may also provide cooling benfit)",
+            "Stage 03: Lowe SFP local MVHR units with high efficiency heat recovery and demand driven controls interfaced with natural ventilation",
+            "Stage 04: Extract Only ventilation combined with fresh air supply ventialtion incorporating local heating & cooling"
+        ]
+    },
+    {
+        "stage_name": "Ventilation Systems - Stage 02: Mixed mode ventilation with smart controls to minimise reliance on mechanical ventilation (may also provide cooling benfit)",
+        "prerequisite": "Stage 01: Minimising volume of air that needs to be moved (with consideration to wellbeing) including fan power consumption and use of natural ventilation",
+        "exclusive_with": [
+            "Stage 01: Minimising volume of air that needs to be moved (with consideration to wellbeing) including fan power consumption and use of natural ventilation",
+            "Stage 03: Lowe SFP local MVHR units with high efficiency heat recovery and demand driven controls interfaced with natural ventilation",
+            "Stage 04: Extract Only ventilation combined with fresh air supply ventialtion incorporating local heating & cooling"
+        ]
+    },
+    {
+        "stage_name": "Ventilation Systems - Stage 03: Lowe SFP local MVHR units with high efficiency heat recovery and demand driven controls interfaced with natural ventilation",
+        "prerequisite": "Stage 02: Mixed mode ventilation with smart controls to minimise reliance on mechanical ventilation (may also provide cooling benfit)",
+        "exclusive_with": [
+            "Stage 01: Minimising volume of air that needs to be moved (with consideration to wellbeing) including fan power consumption and use of natural ventilation",
+            "Stage 02: Mixed mode ventilation with smart controls to minimise reliance on mechanical ventilation (may also provide cooling benfit)",
+            "Stage 04: Extract Only ventilation combined with fresh air supply ventialtion incorporating local heating & cooling"
+        ]
+    },
+    {
+        "stage_name": "Ventilation Systems - Stage 04: Extract Only ventilation combined with fresh air supply ventialtion incorporating local heating & cooling",
+        "prerequisite": "Stage 03: Lowe SFP local MVHR units with high efficiency heat recovery and demand driven controls interfaced with natural ventilation",
+        "exclusive_with": [
+            "Stage 01: Minimising volume of air that needs to be moved (with consideration to wellbeing) including fan power consumption and use of natural ventilation",
+            "Stage 02: Mixed mode ventilation with smart controls to minimise reliance on mechanical ventilation (may also provide cooling benfit)",
+            "Stage 03: Lowe SFP local MVHR units with high efficiency heat recovery and demand driven controls interfaced with natural ventilation"
+        ]
+    },
+    {
+        "stage_name": "Domestic Cold Water - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: minimise water wasteage",
+            "Stage 02b: Minimise pump energy consumption by reducing volume of water requiring movement"
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Lighting - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02: Simple lighting design utilising very low energy light fittings",
+            "Stage 03: Smart controls (Absence/ presence detection & daylight linking)",
+            "Stage 04: Circadian Controls"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+            "Stage 02b: Utlisation of low carbon energy sources",
+            "Stage 03a: Utilise existing district energy network",
+            "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+            "Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads"
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 02a: Minimise unnecessary storage and distribution losses",
+        "prerequisite": "Stage 01: Provision in line with TRD",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 02b: Use low carbon energy source to generate hot water",
+        "prerequisite": "Stage 02a: Minimise unnecessary storage and distribution losses",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+        "prerequisite": "Stage 02b: Use low carbon energy source to generate hot water",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+        "prerequisite": "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+        "prerequisite": "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 5: Utilise solar collectors to off-set primary energy use.",
+        "prerequisite": "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)"
+        ]
+    },
+    {
+        "stage_name": "Domestic Cold Water - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: minimise water wasteage",
+            "Stage 02b: Minimise pump energy consumption by reducing volume of water requiring movement"
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Lighting - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02: Simple lighting design utilising very low energy light fittings",
+            "Stage 03: Smart controls (Absence/ presence detection & daylight linking)",
+            "Stage 04: Circadian Controls"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+            "Stage 02b: Utlisation of low carbon energy sources",
+            "Stage 03a: Utilise existing district energy network",
+            "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+            "Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads"
+        ]
+    },
+    {
+        "stage_name": "Domestic Cold Water - Stage 02a: minimise water wasteage",
+        "prerequisite": "Stage 01: Provision in line with TRD",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02b: Minimise pump energy consumption by reducing volume of water requiring movement"
+        ]
+    },
+    {
+        "stage_name": "Domestic Cold Water - Stage 02b: Minimise pump energy consumption by reducing volume of water requiring movement",
+        "prerequisite": "Stage 02a: minimise water wasteage",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02a: minimise water wasteage"
+        ]
+    },
+    {
+        "stage_name": "Domestic Cold Water - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: minimise water wasteage",
+            "Stage 02b: Minimise pump energy consumption by reducing volume of water requiring movement"
+        ]
+    },
+    {
+        "stage_name": "Domestic Hot Water - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Minimise unnecessary storage and distribution losses",
+            "Stage 02b: Use low carbon energy source to generate hot water",
+            "Stage 3a: Decentralised local generation utilising low carbon heat available from district energy network",
+            "Stage 3b: Centralised system utilising low carbon heat available from district energy network",
+            "Stage 4: Use receoverd energy to pre-heat water (heat recovery from plant etc.)",
+            "Stage 5: Utilise solar collectors to off-set primary energy use."
+        ]
+    },
+    {
+        "stage_name": "Lighting - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02: Simple lighting design utilising very low energy light fittings",
+            "Stage 03: Smart controls (Absence/ presence detection & daylight linking)",
+            "Stage 04: Circadian Controls"
+        ]
+    },
+    {
+        "stage_name": "Provision of primary energy - Stage 01: Provision in line with TRD",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02a: Minimise energy consumption through passive design measures, energy efficient systems and controls",
+            "Stage 02b: Utlisation of low carbon energy sources",
+            "Stage 03a: Utilise existing district energy network",
+            "Stage 03b: Utilise air source heat pumps to generate heating, cooling and domestic hot water",
+            "Stage 04: Use simultaneous heating and colling heat pumps during mid-season loads"
+        ]
+    },
+    {
+        "stage_name": "Lighting - Stage 02: Simple lighting design utilising very low energy light fittings",
+        "prerequisite": "Stage 01: Provision in line with TRD",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 03: Smart controls (Absence/ presence detection & daylight linking)",
+            "Stage 04: Circadian Controls"
+        ]
+    },
+    {
+        "stage_name": "Lighting - Stage 03: Smart controls (Absence/ presence detection & daylight linking)",
+        "prerequisite": "Stage 02: Simple lighting design utilising very low energy light fittings",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02: Simple lighting design utilising very low energy light fittings",
+            "Stage 04: Circadian Controls"
+        ]
+    },
+    {
+        "stage_name": "Lighting - Stage 04: Circadian Controls",
+        "prerequisite": "Stage 03: Smart controls (Absence/ presence detection & daylight linking)",
+        "exclusive_with": [
+            "Stage 01: Provision in line with TRD",
+            "Stage 02: Simple lighting design utilising very low energy light fittings",
+            "Stage 03: Smart controls (Absence/ presence detection & daylight linking)"
+        ]
+    },
+    {
+        "stage_name": "Small Power - Stage 01a: Minimise plug loads",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 01b: Minimise energy wasteage",
+            "Stage 02a: Reduce use of plug in equipment",
+            "Stage 02b: Specify high efficiency equipment with integral power saving controls",
+            "Stage 03: Smart Controls in rooms to turn off non-essential equipment when not in use",
+            "Stage 04: Battery stroage to store energy from LZCTs and off-peak/low carbon grid electricity"
+        ]
+    },
+    {
+        "stage_name": "Small Power - Stage 01b: Minimise energy wasteage",
+        "prerequisite": "Stage 01a: Minimise plug loads",
+        "exclusive_with": [
+            "Stage 01a: Minimise plug loads",
+            "Stage 02a: Reduce use of plug in equipment",
+            "Stage 02b: Specify high efficiency equipment with integral power saving controls",
+            "Stage 03: Smart Controls in rooms to turn off non-essential equipment when not in use",
+            "Stage 04: Battery stroage to store energy from LZCTs and off-peak/low carbon grid electricity"
+        ]
+    },
+    {
+        "stage_name": "Small Power - Stage 02a: Reduce use of plug in equipment",
+        "prerequisite": "Stage 01b: Minimise energy wasteage",
+        "exclusive_with": [
+            "Stage 01a: Minimise plug loads",
+            "Stage 01b: Minimise energy wasteage",
+            "Stage 02b: Specify high efficiency equipment with integral power saving controls",
+            "Stage 03: Smart Controls in rooms to turn off non-essential equipment when not in use",
+            "Stage 04: Battery stroage to store energy from LZCTs and off-peak/low carbon grid electricity"
+        ]
+    },
+    {
+        "stage_name": "Small Power - Stage 02b: Specify high efficiency equipment with integral power saving controls",
+        "prerequisite": "Stage 02a: Reduce use of plug in equipment",
+        "exclusive_with": [
+            "Stage 01a: Minimise plug loads",
+            "Stage 01b: Minimise energy wasteage",
+            "Stage 02a: Reduce use of plug in equipment",
+            "Stage 03: Smart Controls in rooms to turn off non-essential equipment when not in use",
+            "Stage 04: Battery stroage to store energy from LZCTs and off-peak/low carbon grid electricity"
+        ]
+    },
+    {
+        "stage_name": "Small Power - Stage 03: Smart Controls in rooms to turn off non-essential equipment when not in use",
+        "prerequisite": "Stage 02b: Specify high efficiency equipment with integral power saving controls",
+        "exclusive_with": [
+            "Stage 01a: Minimise plug loads",
+            "Stage 01b: Minimise energy wasteage",
+            "Stage 02a: Reduce use of plug in equipment",
+            "Stage 02b: Specify high efficiency equipment with integral power saving controls",
+            "Stage 04: Battery stroage to store energy from LZCTs and off-peak/low carbon grid electricity"
+        ]
+    },
+    {
+        "stage_name": "Small Power - Stage 04: Battery stroage to store energy from LZCTs and off-peak/low carbon grid electricity",
+        "prerequisite": "Stage 03: Smart Controls in rooms to turn off non-essential equipment when not in use",
+        "exclusive_with": [
+            "Stage 01a: Minimise plug loads",
+            "Stage 01b: Minimise energy wasteage",
+            "Stage 02a: Reduce use of plug in equipment",
+            "Stage 02b: Specify high efficiency equipment with integral power saving controls",
+            "Stage 03: Smart Controls in rooms to turn off non-essential equipment when not in use"
+        ]
+    },
+    {
+        "stage_name": "Lifts - Stage 01a: Minimise energy consumption",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 01b: Maximise energy efficiency",
+            "Stage 02: Incorporate energy recovery systems",
+            "Stage 03: Utilise smart control and management systems to minimise unnecessary lift movements"
+        ]
+    },
+    {
+        "stage_name": "Lifts - Stage 01b: Maximise energy efficiency",
+        "prerequisite": "Stage 01a: Minimise energy consumption",
+        "exclusive_with": [
+            "Stage 01a: Minimise energy consumption",
+            "Stage 02: Incorporate energy recovery systems",
+            "Stage 03: Utilise smart control and management systems to minimise unnecessary lift movements"
+        ]
+    },
+    {
+        "stage_name": "Lifts - Stage 02: Incorporate energy recovery systems",
+        "prerequisite": "Stage 01b: Maximise energy efficiency",
+        "exclusive_with": [
+            "Stage 01a: Minimise energy consumption",
+            "Stage 01b: Maximise energy efficiency",
+            "Stage 03: Utilise smart control and management systems to minimise unnecessary lift movements"
+        ]
+    },
+    {
+        "stage_name": "Lifts - Stage 03: Utilise smart control and management systems to minimise unnecessary lift movements",
+        "prerequisite": "Stage 02: Incorporate energy recovery systems",
+        "exclusive_with": [
+            "Stage 01a: Minimise energy consumption",
+            "Stage 01b: Maximise energy efficiency",
+            "Stage 02: Incorporate energy recovery systems"
+        ]
+    },
+    {
+        "stage_name": "Renewables - High intervention: Extensive use of PV; facades?",
+        "prerequisite": null,
+        "exclusive_with": []
+    },
+    {
+        "stage_name": "Energy Management & Monitoring - Stage 01 - Automated Meter Reading (AMR) with sub-metering for specific sub-areas/equipment; includign integration with BMA",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Energy Management System (EMS) connected to BMS with data logging aids",
+            "Stage 03 - Interactive tools tracking energy consumption in real-time allowing for immediate adjustments to reduce waste with BMA using optimisation algorithms to automatically adjust settings for optimal energy efficiency",
+            "Stage 04 - Use of real time data analysis and forecasting reduces energy use by anticipating demand and adjusting operations to reduce energy waste"
+        ]
+    },
+    {
+        "stage_name": "Energy Management & Monitoring - Stage 02 - Energy Management System (EMS) connected to BMS with data logging aids",
+        "prerequisite": "Stage 01 - Automated Meter Reading (AMR) with sub-metering for specific sub-areas/equipment; includign integration with BMA",
+        "exclusive_with": [
+            "Stage 01 - Automated Meter Reading (AMR) with sub-metering for specific sub-areas/equipment",
+            "includign integration with BMA",
+            "Stage 03 - Interactive tools tracking energy consumption in real-time allowing for immediate adjustments to reduce waste with BMA using optimisation algorithms to automatically adjust settings for optimal energy efficiency",
+            "Stage 04 - Use of real time data analysis and forecasting reduces energy use by anticipating demand and adjusting operations to reduce energy waste"
+        ]
+    },
+    {
+        "stage_name": "Energy Management & Monitoring - Stage 03 - Interactive tools tracking energy consumption in real-time allowing for immediate adjustments to reduce waste with BMA using optimisation algorithms to automatically adjust settings for optimal energy efficiency",
+        "prerequisite": "Stage 02 - Energy Management System (EMS) connected to BMS with data logging aids",
+        "exclusive_with": [
+            "Stage 01 - Automated Meter Reading (AMR) with sub-metering for specific sub-areas/equipment",
+            "includign integration with BMA",
+            "Stage 02 - Energy Management System (EMS) connected to BMS with data logging aids",
+            "Stage 04 - Use of real time data analysis and forecasting reduces energy use by anticipating demand and adjusting operations to reduce energy waste"
+        ]
+    },
+    {
+        "stage_name": "Energy Management & Monitoring - Stage 04 - Use of real time data analysis and forecasting reduces energy use by anticipating demand and adjusting operations to reduce energy waste",
+        "prerequisite": "Stage 03 - Interactive tools tracking energy consumption in real-time allowing for immediate adjustments to reduce waste with BMA using optimisation algorithms to automatically adjust settings for optimal energy efficiency",
+        "exclusive_with": [
+            "Stage 01 - Automated Meter Reading (AMR) with sub-metering for specific sub-areas/equipment",
+            "includign integration with BMA",
+            "Stage 02 - Energy Management System (EMS) connected to BMS with data logging aids",
+            "Stage 03 - Interactive tools tracking energy consumption in real-time allowing for immediate adjustments to reduce waste with BMA using optimisation algorithms to automatically adjust settings for optimal energy efficiency"
+        ]
+    },
+    {
+        "stage_name": "Fault Detection - Stage 01 - Manual Fault Detection",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Simple fault detection and automated notifications/ alerts",
+            "Stage 03 - Data driven automatic fault monitoring providng detialed insights and analytics to support decision-making",
+            "Stage 04 - Proactive fault detection and automatic resolution predicting when equipment is likley to fail or require maintenance."
+        ]
+    },
+    {
+        "stage_name": "Fault Detection - Stage 02 - Simple fault detection and automated notifications/ alerts",
+        "prerequisite": "Stage 01 - Manual Fault Detection",
+        "exclusive_with": [
+            "Stage 01 - Manual Fault Detection",
+            "Stage 03 - Data driven automatic fault monitoring providng detialed insights and analytics to support decision-making",
+            "Stage 04 - Proactive fault detection and automatic resolution predicting when equipment is likley to fail or require maintenance."
+        ]
+    },
+    {
+        "stage_name": "Fault Detection - Stage 03 - Data driven automatic fault monitoring providng detialed insights and analytics to support decision-making",
+        "prerequisite": "Stage 02 - Simple fault detection and automated notifications/ alerts",
+        "exclusive_with": [
+            "Stage 01 - Manual Fault Detection",
+            "Stage 02 - Simple fault detection and automated notifications/ alerts",
+            "Stage 04 - Proactive fault detection and automatic resolution predicting when equipment is likley to fail or require maintenance."
+        ]
+    },
+    {
+        "stage_name": "Fault Detection - Stage 04 - Proactive fault detection and automatic resolution predicting when equipment is likley to fail or require maintenance.",
+        "prerequisite": "Stage 03 - Data driven automatic fault monitoring providng detialed insights and analytics to support decision-making",
+        "exclusive_with": [
+            "Stage 01 - Manual Fault Detection",
+            "Stage 02 - Simple fault detection and automated notifications/ alerts",
+            "Stage 03 - Data driven automatic fault monitoring providng detialed insights and analytics to support decision-making"
+        ]
+    },
+    {
+        "stage_name": "Monitoring - Stage 01 - Basic monitoring of CO2, temperature and humidity",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Active monitoring of CO2, temperature and humidity",
+            "Stage 03 - IAQ monitoring which informas occupants about air quality and actions to take when deficient",
+            "Stage 04 - In room monitoring and automated ventilation systems"
+        ]
+    },
+    {
+        "stage_name": "Monitoring - Stage 02 - Active monitoring of CO2, temperature and humidity",
+        "prerequisite": "Stage 01 - Basic monitoring of CO2, temperature and humidity",
+        "exclusive_with": [
+            "Stage 01 - Basic monitoring of CO2, temperature and humidity",
+            "Stage 03 - IAQ monitoring which informas occupants about air quality and actions to take when deficient",
+            "Stage 04 - In room monitoring and automated ventilation systems"
+        ]
+    },
+    {
+        "stage_name": "Monitoring - Stage 03 - IAQ monitoring which informas occupants about air quality and actions to take when deficient",
+        "prerequisite": "Stage 02 - Active monitoring of CO2, temperature and humidity",
+        "exclusive_with": [
+            "Stage 01 - Basic monitoring of CO2, temperature and humidity",
+            "Stage 02 - Active monitoring of CO2, temperature and humidity",
+            "Stage 04 - In room monitoring and automated ventilation systems"
+        ]
+    },
+    {
+        "stage_name": "Monitoring - Stage 04 - In room monitoring and automated ventilation systems",
+        "prerequisite": "Stage 03 - IAQ monitoring which informas occupants about air quality and actions to take when deficient",
+        "exclusive_with": [
+            "Stage 01 - Basic monitoring of CO2, temperature and humidity",
+            "Stage 02 - Active monitoring of CO2, temperature and humidity",
+            "Stage 03 - IAQ monitoring which informas occupants about air quality and actions to take when deficient"
+        ]
+    },
+    {
+        "stage_name": "Systems - Stage 01 - Improved air filtration",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Basic control systems (increase/decrease in fresh air rate)",
+            "Stage 03- Demand controlled ventilation (MERV Level 13 or better)"
+        ]
+    },
+    {
+        "stage_name": "Systems - Stage 02 - Basic control systems (increase/decrease in fresh air rate)",
+        "prerequisite": "Stage 01 - Improved air filtration",
+        "exclusive_with": [
+            "Stage 01 - Improved air filtration",
+            "Stage 03- Demand controlled ventilation (MERV Level 13 or better)"
+        ]
+    },
+    {
+        "stage_name": "Systems - Stage 03- Demand controlled ventilation (MERV Level 13 or better)",
+        "prerequisite": "Stage 02 - Basic control systems (increase/decrease in fresh air rate)",
+        "exclusive_with": [
+            "Stage 01 - Improved air filtration",
+            "Stage 02 - Basic control systems (increase/decrease in fresh air rate)"
+        ]
+    },
+    {
+        "stage_name": "VOC Materials - Stage 01  - Reduce VOCs through selection of low emssion materials",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - 'Red list' approach to materials with no high VOC materials permitted"
+        ]
+    },
+    {
+        "stage_name": "VOC Materials - Stage 02 - 'Red list' approach to materials with no high VOC materials permitted",
+        "prerequisite": "Stage 01  - Reduce VOCs through selection of low emssion materials",
+        "exclusive_with": [
+            "Stage 01  - Reduce VOCs through selection of low emssion materials"
+        ]
+    },
+    {
+        "stage_name": "Overheating Prevention - Stage 0 1 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under the DSY 1 summer design conditions",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under all extreme design  summer year conditions",
+            "Stage 03 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions",
+            "Stage 04 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions with monitoring and verification",
+            "Stage 05 - Comfortable indoor environment temperatures using the adaptive thermal comfort model  without the requirements for active cooling"
+        ]
+    },
+    {
+        "stage_name": "Overheating Prevention - Stage 02 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under all extreme design  summer year conditions",
+        "prerequisite": "Stage 0 1 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under the DSY 1 summer design conditions",
+        "exclusive_with": [
+            "Stage 0 1 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under the DSY 1 summer design conditions",
+            "Stage 03 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions",
+            "Stage 04 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions with monitoring and verification",
+            "Stage 05 - Comfortable indoor environment temperatures using the adaptive thermal comfort model  without the requirements for active cooling"
+        ]
+    },
+    {
+        "stage_name": "Overheating Prevention - Stage 03 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions",
+        "prerequisite": "Stage 02 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under all extreme design  summer year conditions",
+        "exclusive_with": [
+            "Stage 0 1 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under the DSY 1 summer design conditions",
+            "Stage 02 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under all extreme design  summer year conditions",
+            "Stage 04 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions with monitoring and verification",
+            "Stage 05 - Comfortable indoor environment temperatures using the adaptive thermal comfort model  without the requirements for active cooling"
+        ]
+    },
+    {
+        "stage_name": "Overheating Prevention - Stage 04 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions with monitoring and verification",
+        "prerequisite": "Stage 03 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions",
+        "exclusive_with": [
+            "Stage 0 1 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under the DSY 1 summer design conditions",
+            "Stage 02 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under all extreme design  summer year conditions",
+            "Stage 03 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions",
+            "Stage 05 - Comfortable indoor environment temperatures using the adaptive thermal comfort model  without the requirements for active cooling"
+        ]
+    },
+    {
+        "stage_name": "Overheating Prevention - Stage 05 - Comfortable indoor environment temperatures using the adaptive thermal comfort model  without the requirements for active cooling",
+        "prerequisite": "Stage 04 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions with monitoring and verification",
+        "exclusive_with": [
+            "Stage 0 1 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under the DSY 1 summer design conditions",
+            "Stage 02 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under all extreme design  summer year conditions",
+            "Stage 03 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions",
+            "Stage 04 - Comfortable indoor environment temperatures using the adaptive thermal comfort model under current and extreme future weather conditions with monitoring and verification"
+        ]
+    },
+    {
+        "stage_name": "Controls - Stage 01 - Thermal Zoning and controls appropriate for intended use case",
+        "prerequisite": null,
+        "exclusive_with": []
+    },
+    {
+        "stage_name": "Daylight Access - Stage 01 - Optimised design with daylight accessof %sDA>50%",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Optimise size and position of windows and external shading for maximum daylight and minimum overheating"
+        ]
+    },
+    {
+        "stage_name": "Daylight Access - Stage 02 - Optimise size and position of windows and external shading for maximum daylight and minimum overheating",
+        "prerequisite": "Stage 01 - Optimised design with daylight accessof %sDA>50%",
+        "exclusive_with": [
+            "Stage 01 - Optimised design with daylight accessof %sDA>50%"
+        ]
+    },
+    {
+        "stage_name": "Glare Control - Stage 01 - Personal control over sunlight & glare (internal blinds)",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - External shading designed to reduce sunlight glare, ASE<10%"
+        ]
+    },
+    {
+        "stage_name": "Glare Control - Stage 02 - External shading designed to reduce sunlight glare, ASE<10%",
+        "prerequisite": "Stage 01 - Personal control over sunlight & glare (internal blinds)",
+        "exclusive_with": [
+            "Stage 01 - Personal control over sunlight & glare (internal blinds)"
+        ]
+    },
+    {
+        "stage_name": "Lighting Controls - Stage 0 1  - Personal control over artificial lighting",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Use of circadian lighting",
+            "Stage 03 - Detailed lighting plan for age groups & activities",
+            "Stage 04 - IoT tech & mobile apps for automatic daylight control & blinds"
+        ]
+    },
+    {
+        "stage_name": "Lighting Controls - Stage 02 - Use of circadian lighting",
+        "prerequisite": "Stage 0 1  - Personal control over artificial lighting",
+        "exclusive_with": [
+            "Stage 0 1  - Personal control over artificial lighting",
+            "Stage 03 - Detailed lighting plan for age groups & activities",
+            "Stage 04 - IoT tech & mobile apps for automatic daylight control & blinds"
+        ]
+    },
+    {
+        "stage_name": "Lighting Controls - Stage 03 - Detailed lighting plan for age groups & activities",
+        "prerequisite": "Stage 02 - Use of circadian lighting",
+        "exclusive_with": [
+            "Stage 0 1  - Personal control over artificial lighting",
+            "Stage 02 - Use of circadian lighting",
+            "Stage 04 - IoT tech & mobile apps for automatic daylight control & blinds"
+        ]
+    },
+    {
+        "stage_name": "Lighting Controls - Stage 04 - IoT tech & mobile apps for automatic daylight control & blinds",
+        "prerequisite": "Stage 03 - Detailed lighting plan for age groups & activities",
+        "exclusive_with": [
+            "Stage 0 1  - Personal control over artificial lighting",
+            "Stage 02 - Use of circadian lighting",
+            "Stage 03 - Detailed lighting plan for age groups & activities"
+        ]
+    },
+    {
+        "stage_name": "Sound Insulation - Stage 01 - BREEAM 1 Point - +3dB on Part E (46 dB DnTw+Ctr)",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - BREEAM 2 Points - +5dB on Part E (48 dB DnTw+Ctr)",
+            "Stage 03 - +8dB on Part E (51 dB DnTw+Ctr)",
+            "Stage 04 - +10dB on Part E (53 dB DnTw+Ctr)"
+        ]
+    },
+    {
+        "stage_name": "Sound Insulation - Stage 02 - BREEAM 2 Points - +5dB on Part E (48 dB DnTw+Ctr)",
+        "prerequisite": "Stage 01 - BREEAM 1 Point - +3dB on Part E (46 dB DnTw+Ctr)",
+        "exclusive_with": [
+            "Stage 01 - BREEAM 1 Point - +3dB on Part E (46 dB DnTw+Ctr)",
+            "Stage 03 - +8dB on Part E (51 dB DnTw+Ctr)",
+            "Stage 04 - +10dB on Part E (53 dB DnTw+Ctr)"
+        ]
+    },
+    {
+        "stage_name": "Sound Insulation - Stage 03 - +8dB on Part E (51 dB DnTw+Ctr)",
+        "prerequisite": "Stage 02 - BREEAM 2 Points - +5dB on Part E (48 dB DnTw+Ctr)",
+        "exclusive_with": [
+            "Stage 01 - BREEAM 1 Point - +3dB on Part E (46 dB DnTw+Ctr)",
+            "Stage 02 - BREEAM 2 Points - +5dB on Part E (48 dB DnTw+Ctr)",
+            "Stage 04 - +10dB on Part E (53 dB DnTw+Ctr)"
+        ]
+    },
+    {
+        "stage_name": "Sound Insulation - Stage 04 - +10dB on Part E (53 dB DnTw+Ctr)",
+        "prerequisite": "Stage 03 - +8dB on Part E (51 dB DnTw+Ctr)",
+        "exclusive_with": [
+            "Stage 01 - BREEAM 1 Point - +3dB on Part E (46 dB DnTw+Ctr)",
+            "Stage 02 - BREEAM 2 Points - +5dB on Part E (48 dB DnTw+Ctr)",
+            "Stage 03 - +8dB on Part E (51 dB DnTw+Ctr)"
+        ]
+    },
+    {
+        "stage_name": "Ambient Noise Levels - Stage 01 - 35dBA daytime\n30 dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 40",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - 30dBA daytime\n25dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 35",
+            "Stage 03 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 35\nHigher spec. glazing\nHigher spec. vent attenuation",
+            "Stage 04 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 30\nStructural vibration isolation more likely"
+        ]
+    },
+    {
+        "stage_name": "Ambient Noise Levels - Stage 02 - 30dBA daytime\n25dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 35",
+        "prerequisite": "Stage 01 - 35dBA daytime\n30 dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 40",
+        "exclusive_with": [
+            "Stage 01 - 35dBA daytime\n30 dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 40",
+            "Stage 03 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 35\nHigher spec. glazing\nHigher spec. vent attenuation",
+            "Stage 04 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 30\nStructural vibration isolation more likely"
+        ]
+    },
+    {
+        "stage_name": "Ambient Noise Levels - Stage 03 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 35\nHigher spec. glazing\nHigher spec. vent attenuation",
+        "prerequisite": "Stage 02 - 30dBA daytime\n25dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 35",
+        "exclusive_with": [
+            "Stage 01 - 35dBA daytime\n30 dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 40",
+            "Stage 02 - 30dBA daytime\n25dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 35",
+            "Stage 04 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 30\nStructural vibration isolation more likely"
+        ]
+    },
+    {
+        "stage_name": "Ambient Noise Levels - Stage 04 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 30\nStructural vibration isolation more likely ",
+        "prerequisite": "Stage 03 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 35\nHigher spec. glazing\nHigher spec. vent attenuation",
+        "exclusive_with": [
+            "Stage 01 - 35dBA daytime\n30 dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 40",
+            "Stage 02 - 30dBA daytime\n25dBA nighttime\nLAFmax 45 (10x/night)\nLASmax 35",
+            "Stage 03 - 30dBA daytime\n25dBA nighttime\nLAFmax 42,1min\nLASmax 35\nHigher spec. glazing\nHigher spec. vent attenuation"
+        ]
+    },
+    {
+        "stage_name": "Service Noise Levels - Stage 01 - NR 30 daytime\nNR25 nighttime",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - NR 25 daytime\nNR 20 nighttime"
+        ]
+    },
+    {
+        "stage_name": "Service Noise Levels - Stage 02 - NR 25 daytime\nNR 20 nighttime",
+        "prerequisite": "Stage 01 - NR 30 daytime\nNR25 nighttime",
+        "exclusive_with": [
+            "Stage 01 - NR 30 daytime\nNR25 nighttime"
+        ]
+    },
+    {
+        "stage_name": "Vibration Control - Stage 01 - BS 6472\nDay 0.2 ms-1.75\nNight 0.13 ms-1.75",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - BS 6472\nDay 0.2 ms-1.75\nNight 0.1 ms-1.75"
+        ]
+    },
+    {
+        "stage_name": "Vibration Control - Stage 02 - BS 6472\nDay 0.2 ms-1.75\nNight 0.1 ms-1.75",
+        "prerequisite": "Stage 01 - BS 6472\nDay 0.2 ms-1.75\nNight 0.13 ms-1.75",
+        "exclusive_with": [
+            "Stage 01 - BS 6472\nDay 0.2 ms-1.75\nNight 0.13 ms-1.75"
+        ]
+    },
+    {
+        "stage_name": "Rainwater Harvesting - Stage 01 - Recycling <25%",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Recycling <50%",
+            "Stage 03 - Recycling <70%",
+            "Stage 04 - Recycling <70%"
+        ]
+    },
+    {
+        "stage_name": "Rainwater Harvesting - Stage 02 - Recycling <50%",
+        "prerequisite": "Stage 01 - Recycling <25%",
+        "exclusive_with": [
+            "Stage 01 - Recycling <25%",
+            "Stage 03 - Recycling <70%",
+            "Stage 04 - Recycling <70%"
+        ]
+    },
+    {
+        "stage_name": "Rainwater Harvesting - Stage 03 - Recycling <70%",
+        "prerequisite": "Stage 02 - Recycling <50%",
+        "exclusive_with": [
+            "Stage 01 - Recycling <25%",
+            "Stage 02 - Recycling <50%",
+            "Stage 04 - Recycling <70%"
+        ]
+    },
+    {
+        "stage_name": "Rainwater Harvesting - Stage 04 - Recycling <70%",
+        "prerequisite": "Stage 03 - Recycling <70%",
+        "exclusive_with": [
+            "Stage 01 - Recycling <25%",
+            "Stage 02 - Recycling <50%",
+            "Stage 03 - Recycling <70%"
+        ]
+    },
+    {
+        "stage_name": "Greywater Recycling - Stage 01 - Greywater Recycling <25%",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Greywater Recycling <50%",
+            "Stage 03 - Greywater Recycling <75%",
+            "Stage 04 - Greywater Recycling >90%"
+        ]
+    },
+    {
+        "stage_name": "Greywater Recycling - Stage 02 - Greywater Recycling <50%",
+        "prerequisite": "Stage 01 - Greywater Recycling <25%",
+        "exclusive_with": [
+            "Stage 01 - Greywater Recycling <25%",
+            "Stage 03 - Greywater Recycling <75%",
+            "Stage 04 - Greywater Recycling >90%"
+        ]
+    },
+    {
+        "stage_name": "Greywater Recycling - Stage 03 - Greywater Recycling <75%",
+        "prerequisite": "Stage 02 - Greywater Recycling <50%",
+        "exclusive_with": [
+            "Stage 01 - Greywater Recycling <25%",
+            "Stage 02 - Greywater Recycling <50%",
+            "Stage 04 - Greywater Recycling >90%"
+        ]
+    },
+    {
+        "stage_name": "Greywater Recycling - Stage 04 - Greywater Recycling >90%",
+        "prerequisite": "Stage 03 - Greywater Recycling <75%",
+        "exclusive_with": [
+            "Stage 01 - Greywater Recycling <25%",
+            "Stage 02 - Greywater Recycling <50%",
+            "Stage 03 - Greywater Recycling <75%"
+        ]
+    },
+    {
+        "stage_name": "Smart Meters - Stage 01 - Smart meters with AMR for automated data collection including notification and damage limitation in the event of a pipe break/leakages",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Smart meters with AMI for detailed consumption feedback\ni.e \u201c70% of your potable water is recycled\u201d",
+            "Stage 03 - AMI system for comprehensive data analysis and feedback"
+        ]
+    },
+    {
+        "stage_name": "Smart Meters - Stage 02 - Smart meters with AMI for detailed consumption feedback\ni.e \u201c70% of your potable water is recycled\u201d",
+        "prerequisite": "Stage 01 - Smart meters with AMR for automated data collection including notification and damage limitation in the event of a pipe break/leakages",
+        "exclusive_with": [
+            "Stage 01 - Smart meters with AMR for automated data collection including notification and damage limitation in the event of a pipe break/leakages",
+            "Stage 03 - AMI system for comprehensive data analysis and feedback"
+        ]
+    },
+    {
+        "stage_name": "Smart Meters - Stage 03 - AMI system for comprehensive data analysis and feedback",
+        "prerequisite": "Stage 02 - Smart meters with AMI for detailed consumption feedback\ni.e \u201c70% of your potable water is recycled\u201d",
+        "exclusive_with": [
+            "Stage 01 - Smart meters with AMR for automated data collection including notification and damage limitation in the event of a pipe break/leakages",
+            "Stage 02 - Smart meters with AMI for detailed consumption feedback\ni.e \u201c70% of your potable water is recycled\u201d"
+        ]
+    },
+    {
+        "stage_name": "Circular Economy Assessment - Stage 01 - Provide a simple assessment to identify opportunites within one selected area/theme\nDecide to engage in simple circular system, e.g consider reuse of materials through existing channels",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Provide a simple assessment to identify opportunities within multiple areas/themes\nDecide to embed more readily available circular solutions into the building",
+            "Stage 03 - Provide a thorough assessment to identify mulitiple circular opportunites and potential challenges or risks that are relevant for the project",
+            "Stage 04 - Very thorough assessment carried out to create full picture of opportunites and challenges for circularity as well as solutions."
+        ]
+    },
+    {
+        "stage_name": "Circular Economy Assessment - Stage 02 - Provide a simple assessment to identify opportunities within multiple areas/themes\nDecide to embed more readily available circular solutions into the building",
+        "prerequisite": "Stage 01 - Provide a simple assessment to identify opportunites within one selected area/theme\nDecide to engage in simple circular system, e.g consider reuse of materials through existing channels",
+        "exclusive_with": [
+            "Stage 01 - Provide a simple assessment to identify opportunites within one selected area/theme\nDecide to engage in simple circular system, e.g consider reuse of materials through existing channels",
+            "Stage 03 - Provide a thorough assessment to identify mulitiple circular opportunites and potential challenges or risks that are relevant for the project",
+            "Stage 04 - Very thorough assessment carried out to create full picture of opportunites and challenges for circularity as well as solutions."
+        ]
+    },
+    {
+        "stage_name": "Circular Economy Assessment - Stage 03 - Provide a thorough assessment to identify mulitiple circular opportunites and potential challenges or risks that are relevant for the project",
+        "prerequisite": "Stage 02 - Provide a simple assessment to identify opportunities within multiple areas/themes\nDecide to embed more readily available circular solutions into the building",
+        "exclusive_with": [
+            "Stage 01 - Provide a simple assessment to identify opportunites within one selected area/theme\nDecide to engage in simple circular system, e.g consider reuse of materials through existing channels",
+            "Stage 02 - Provide a simple assessment to identify opportunities within multiple areas/themes\nDecide to embed more readily available circular solutions into the building",
+            "Stage 04 - Very thorough assessment carried out to create full picture of opportunites and challenges for circularity as well as solutions."
+        ]
+    },
+    {
+        "stage_name": "Circular Economy Assessment - Stage 04 - Very thorough assessment carried out to create full picture of opportunites and challenges for circularity as well as solutions.",
+        "prerequisite": "Stage 03 - Provide a thorough assessment to identify mulitiple circular opportunites and potential challenges or risks that are relevant for the project",
+        "exclusive_with": [
+            "Stage 01 - Provide a simple assessment to identify opportunites within one selected area/theme\nDecide to engage in simple circular system, e.g consider reuse of materials through existing channels",
+            "Stage 02 - Provide a simple assessment to identify opportunities within multiple areas/themes\nDecide to embed more readily available circular solutions into the building",
+            "Stage 03 - Provide a thorough assessment to identify mulitiple circular opportunites and potential challenges or risks that are relevant for the project"
+        ]
+    },
+    {
+        "stage_name": "Reuse Study - Stage 01 - Preliminary feasibility study on the potentials of reuse in the existing building is conducted. (screening)",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Preliminary pre-demolition audit on the potentials of reuse in the existing building is conducted",
+            "Stage 03 - More in-depth mapping and examination of materials and components is conducted including calcualtion on savings on emission and costs.",
+            "Stage 04 - Mapping of materials and buildings components is supplemented with a suitability analysis, examining if some of the identified buildings components can be reused in the design 1 to 1 or fulfilling a secondary function."
+        ]
+    },
+    {
+        "stage_name": "Reuse Study - Stage 02 - Preliminary pre-demolition audit on the potentials of reuse in the existing building is conducted",
+        "prerequisite": "Stage 01 - Preliminary feasibility study on the potentials of reuse in the existing building is conducted. (screening)",
+        "exclusive_with": [
+            "Stage 01 - Preliminary feasibility study on the potentials of reuse in the existing building is conducted. (screening)",
+            "Stage 03 - More in-depth mapping and examination of materials and components is conducted including calcualtion on savings on emission and costs.",
+            "Stage 04 - Mapping of materials and buildings components is supplemented with a suitability analysis, examining if some of the identified buildings components can be reused in the design 1 to 1 or fulfilling a secondary function."
+        ]
+    },
+    {
+        "stage_name": "Reuse Study - Stage 03 - More in-depth mapping and examination of materials and components is conducted including calcualtion on savings on emission and costs.",
+        "prerequisite": "Stage 02 - Preliminary pre-demolition audit on the potentials of reuse in the existing building is conducted",
+        "exclusive_with": [
+            "Stage 01 - Preliminary feasibility study on the potentials of reuse in the existing building is conducted. (screening)",
+            "Stage 02 - Preliminary pre-demolition audit on the potentials of reuse in the existing building is conducted",
+            "Stage 04 - Mapping of materials and buildings components is supplemented with a suitability analysis, examining if some of the identified buildings components can be reused in the design 1 to 1 or fulfilling a secondary function."
+        ]
+    },
+    {
+        "stage_name": "Reuse Study - Stage 04 - Mapping of materials and buildings components is supplemented with a suitability analysis, examining if some of the identified buildings components can be reused in the design 1 to 1 or fulfilling a secondary function.",
+        "prerequisite": "Stage 03 - More in-depth mapping and examination of materials and components is conducted including calcualtion on savings on emission and costs.",
+        "exclusive_with": [
+            "Stage 01 - Preliminary feasibility study on the potentials of reuse in the existing building is conducted. (screening)",
+            "Stage 02 - Preliminary pre-demolition audit on the potentials of reuse in the existing building is conducted",
+            "Stage 03 - More in-depth mapping and examination of materials and components is conducted including calcualtion on savings on emission and costs."
+        ]
+    },
+    {
+        "stage_name": "Exclusion of identified hazardous materials from specification - Stage 01 - Develop materials specification to exclude a significant proportion of identified hazardous substances. ",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Develop materials specification to exclude all identified hazardous substances."
+        ]
+    },
+    {
+        "stage_name": "Exclusion of identified hazardous materials from specification - Stage 02 - Develop materials specification to exclude all identified hazardous substances. ",
+        "prerequisite": "Stage 01 - Develop materials specification to exclude a significant proportion of identified hazardous substances. ",
+        "exclusive_with": [
+            "Stage 01 - Develop materials specification to exclude a significant proportion of identified hazardous substances."
+        ]
+    },
+    {
+        "stage_name": "Climate Change Report - Stage 01 - review of best available data on climate hazard mapping and risk assessment is conducted.",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Application of best available data to perform a high-level site-specific climate hazard mapping and risk assessment for current climate.",
+            "Stage 03 - Application of best available data to perform a community-, city- or catchment-wide climate hazard mapping and risk assessment for current and future climate, including evaluation of the socio-economic components of risk beyond the site boundary or asset scale."
+        ]
+    },
+    {
+        "stage_name": "Climate Change Report - Stage 02 - Application of best available data to perform a high-level site-specific climate hazard mapping and risk assessment for current climate.",
+        "prerequisite": "Stage 01 - review of best available data on climate hazard mapping and risk assessment is conducted.",
+        "exclusive_with": [
+            "Stage 01 - review of best available data on climate hazard mapping and risk assessment is conducted.",
+            "Stage 03 - Application of best available data to perform a community-, city- or catchment-wide climate hazard mapping and risk assessment for current and future climate, including evaluation of the socio-economic components of risk beyond the site boundary or asset scale."
+        ]
+    },
+    {
+        "stage_name": "Climate Change Report - Stage 03 - Application of best available data to perform a community-, city- or catchment-wide climate hazard mapping and risk assessment for current and future climate, including evaluation of the socio-economic components of risk beyond the site boundary or asset scale.",
+        "prerequisite": "Stage 02 - Application of best available data to perform a high-level site-specific climate hazard mapping and risk assessment for current climate.",
+        "exclusive_with": [
+            "Stage 01 - review of best available data on climate hazard mapping and risk assessment is conducted.",
+            "Stage 02 - Application of best available data to perform a high-level site-specific climate hazard mapping and risk assessment for current climate."
+        ]
+    },
+    {
+        "stage_name": "Secutrity Risk Assessment - Stage 0 1- Security Consultant to undertake a site specific security risk assessment & propose a security strategy",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Risk assessment to identify all levels of risk, threat and systems redundancies.",
+            "Stage 03 - Implementation of a security strategy which outlines a plan for varying security threat scenarios and system failures"
+        ]
+    },
+    {
+        "stage_name": "Secutrity Risk Assessment - Stage 02 - Risk assessment to identify all levels of risk, threat and systems redundancies. ",
+        "prerequisite": "Stage 0 1- Security Consultant to undertake a site specific security risk assessment & propose a security strategy",
+        "exclusive_with": [
+            "Stage 0 1- Security Consultant to undertake a site specific security risk assessment & propose a security strategy",
+            "Stage 03 - Implementation of a security strategy which outlines a plan for varying security threat scenarios and system failures"
+        ]
+    },
+    {
+        "stage_name": "Secutrity Risk Assessment - Stage 03 - Implementation of a security strategy which outlines a plan for varying security threat scenarios and system failures",
+        "prerequisite": "Stage 02 - Risk assessment to identify all levels of risk, threat and systems redundancies. ",
+        "exclusive_with": [
+            "Stage 0 1- Security Consultant to undertake a site specific security risk assessment & propose a security strategy",
+            "Stage 02 - Risk assessment to identify all levels of risk, threat and systems redundancies."
+        ]
+    },
+    {
+        "stage_name": "Implementation of physical security measures - Stage 0 1 - Internal secure zones for different building user types",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Measures to prevent tailgating i.e security personnel, secure/biometric access"
+        ]
+    },
+    {
+        "stage_name": "Implementation of physical security measures - Stage 02 - Measures to prevent tailgating i.e security personnel, secure/biometric access",
+        "prerequisite": "Stage 0 1 - Internal secure zones for different building user types",
+        "exclusive_with": [
+            "Stage 0 1 - Internal secure zones for different building user types"
+        ]
+    },
+    {
+        "stage_name": "Post occupancy evalaution stage 01 - Post Occupancy Evaluation after the first 12 months to gain occupant feedback.\nLife Cycle Cost analysis into value added for the client and the local community.",
+        "prerequisite": null,
+        "exclusive_with": []
+    },
+    {
+        "stage_name": "Post occupancy evaluation - Stage 02 - Coordination of Post Occupancy Evaluation data and building performance data and lessons learned feedback \u2013 make changes to the design.\nContinuous evolution of the brief.  ",
+        "prerequisite": null,
+        "exclusive_with": []
+    },
+    {
+        "stage_name": "Biodiversity Action Plan - Stage 01 - Create a specific biodiversity action plan for the site/area.",
+        "prerequisite": null,
+        "exclusive_with": [
+            "Stage 02 - Create a specific biodiversity action plan for the site/area, using only indigenous species."
+        ]
+    },
+    {
+        "stage_name": "Biodiversity Action Plan - Stage 02 - Create a specific biodiversity action plan for the site/area, using only indigenous species.",
+        "prerequisite": "Stage 01 - Create a specific biodiversity action plan for the site/area.",
+        "exclusive_with": [
+            "Stage 01 - Create a specific biodiversity action plan for the site/area."
+        ]
+    }
+]
