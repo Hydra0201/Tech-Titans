@@ -7,4 +7,4 @@ py==1.11.0
 pytest==8.3.5
 toml==0.10.2
 SQLAlchemy==2.0.19
-psycopg2-binary==2.9.6         # PostgreSQL adapter for Python
+#psycopg2==2.9.6         # PostgreSQL adapter (commented out due to errors)
