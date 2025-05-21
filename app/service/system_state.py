@@ -16,7 +16,7 @@ class SystemState:
         self.theme_modifiers = {name: 0.0 for name in themes}
         self.theme_scores = {name: 0.0 for name in themes}
 
-    def apply_intervention(self, Intervention, dependencies):
+    def apply_intervention(self, Intervention, dependencies): # Implements an intervention, calculating the new theme_score for relevant theme
         self.implemented_interventions.append(Intervention.name)
 
         for dep in dependencies:
@@ -28,10 +28,7 @@ class SystemState:
                     raise ValueError(
                         f"Unknown theme '{theme}' in dependency for intervention '{Intervention.name}'"
                     )
-
                 self.theme_modifiers[theme] += effect / 100.0
-
-        # No theme check should happen here, since we may never have matched anything
         for theme, modifier in self.theme_modifiers.items():
             self.theme_scores[theme] += Intervention.stages[0].base_effect * (1 + modifier)
 
@@ -40,3 +37,7 @@ class SystemState:
     # List of interventions chosen so far
     # Dictionary or similar containing themes and their current modifier and score
     
+
+# NOTE: theme_scores are increased by implementing an intervention which affects that theme. Currently, we are 
+# increasing this score by the intervention's base_effect * the multiplier. For this to work, we really need to
+# think about how we are determining the theme_scores.
