@@ -1,7 +1,7 @@
 import json
 import pytest
 from service import system_state
-from service.intervention import Intervention, Stage, InterventionTheme
+from service.intervention import Intervention
 
 
 
