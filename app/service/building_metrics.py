@@ -1,5 +1,13 @@
-class BuildingMetrics:
-    # TODO: Implement (should read metrics from JSON or DB)
+import json
 
-    # FIXME: building_metrics.json is missing the "affected intervention" field. If we don't know which intervention the rule applies for, its not usable.
-    pass
+with open ('data/building_metrics.json', 'r') as f:
+    bm_data = json.load(f)
+class BuildingMetrics:
+    def __init__(self):
+        self.metrics = {}
+
+    def read_metrics(self, bm_data):
+        self.metrics = bm_data
+
+    def get_metric_value(self, name):
+        return self.metrics.get(name, {}).get("value")
