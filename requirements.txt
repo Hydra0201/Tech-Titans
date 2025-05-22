@@ -6,5 +6,6 @@ pluggy==1.5.0
 py==1.11.0
 pytest==8.3.5
 toml==0.10.2
-SQLAlchemy==2.0.19
-#psycopg2==2.9.6         # PostgreSQL adapter (commented out due to errors)
+SQLAlchemy==2.0.19 
+psycopg2-binary>=2.9.6; platform_system != "Windows"
+py-postgresql>=1.2.1; platform_system == "Windows"
