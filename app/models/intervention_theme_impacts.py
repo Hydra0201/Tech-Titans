@@ -6,7 +6,7 @@ from app.core.database import Base
 
 
 class InterventionThemeImpact(Base):
-    _tablename_ = 'intervention_theme_impacts'
+    __tablename__ = 'intervention_theme_impacts'
 
     id = Column(Integer, primary_key=True)
     intervention_id = Column(Integer, ForeignKey('interventions.id'))
