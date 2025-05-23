@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
 
+
 class ProjectIntervention(Base):
     __tablename__ = 'project_interventions'
 
@@ -13,5 +14,5 @@ class ProjectIntervention(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    project = relationship("Project", back_populates="interventions")
-    intervention = relationship("Intervention", back_populates="project_interventions")
+    project = relationship("app.models.projects.Project", back_populates="interventions")
+    intervention = relationship("app.models.interventions.Intervention", back_populates="project_interventions")

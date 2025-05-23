@@ -12,5 +12,5 @@ class Intervention(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    theme_impacts = relationship("InterventionThemeImpact", back_populates="intervention")
-    project_interventions = relationship("ProjectIntervention", back_populates="intervention")
+    theme_impacts = relationship("app.models.intervention_theme_impacts.InterventionThemeImpact", back_populates="intervention")
+    project_interventions = relationship("app.models.project_interventions.ProjectIntervention", back_populates="intervention")

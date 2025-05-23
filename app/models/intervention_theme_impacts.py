@@ -3,8 +3,6 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
 
-
-
 class InterventionThemeImpact(Base):
     __tablename__ = 'intervention_theme_impacts'
 
@@ -15,5 +13,5 @@ class InterventionThemeImpact(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    intervention = relationship("Intervention", back_populates="theme_impacts")
-    theme = relationship("Theme", back_populates="theme_impacts")
+    intervention = relationship("app.models.interventions.Intervention", back_populates="theme_impacts")
+    theme = relationship("app.models.themes.Theme", back_populates="theme_impacts")

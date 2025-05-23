@@ -13,4 +13,4 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    projects = relationship("Project", back_populates="user")
+    projects = relationship("app.models.projects.Project", back_populates="user")

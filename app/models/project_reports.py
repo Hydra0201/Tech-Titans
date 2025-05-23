@@ -13,4 +13,4 @@ class ProjectReport(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    project = relationship("Project", back_populates="reports")
+    project = relationship("app.models.projects.Project", back_populates="reports")

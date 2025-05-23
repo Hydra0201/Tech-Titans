@@ -20,4 +20,4 @@ class BuildingParameter(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    project = relationship("Project", back_populates="building_parameters")
+    project = relationship("app.models.projects.Project", back_populates="building_parameters")

@@ -14,5 +14,5 @@ class ProjectThemeRating(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    project = relationship("Project", back_populates="theme_ratings")
-    theme = relationship("Theme", back_populates="theme_ratings")
+    project = relationship("app.models.projects.Project", back_populates="theme_ratings")
+    theme = relationship("app.models.themes.Theme", back_populates="theme_ratings")
