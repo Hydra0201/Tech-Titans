@@ -9,3 +9,4 @@ toml==0.10.2
 SQLAlchemy==2.0.19 
 psycopg2-binary>=2.9.6; platform_system != "Windows"
 py-postgresql>=1.2.1; platform_system == "Windows"
+bcrypt==4.1.3
