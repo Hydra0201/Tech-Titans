@@ -24,3 +24,10 @@ def init_db():
     
     # Create tables
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        from .import_data import import_themes, import_interventions
+        import_themes(db)
+        import_interventions(db)
+    finally:
+        db.close()
