@@ -15,8 +15,8 @@ class Project(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    user = relationship("app.models.users.User", back_populates="projects")
-    building_parameters = relationship("app.models.building_parameters.BuildingParameter", back_populates="project", uselist=False)
-    theme_ratings = relationship("app.models.project_themes_ratings.ProjectThemeRating", back_populates="project")
-    interventions = relationship("app.models.project_interventions.ProjectIntervention", back_populates="project")
-    reports = relationship("app.models.project_reports.ProjectReport", back_populates="project")
+    user = relationship("User", back_populates="projects")
+    building_parameters = relationship("BuildingParameter", back_populates="project", uselist=False)
+    theme_ratings = relationship("ProjectThemeRating", back_populates="project")
+    interventions = relationship("ProjectIntervention", back_populates="project")
+    reports = relationship("ProjectReport", back_populates="project")

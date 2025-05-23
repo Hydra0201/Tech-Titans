@@ -1,22 +1,25 @@
-import json
-from service import building_metrics as bm
-from service import intervention as iv
-from service import system_state as ss
-from data import be
+from app.core.database import SessionLocal, init_db
+from app.service.auth import register_user, login_user
 
-interventions = [] # List of Intervention objects
+def start_app():
+    # Initialize database FIRST
+    init_db()
+    
+    db = SessionLocal()
+    print("=== Welcome to CarbonBalance ===")
+    choice = input("1: Login\n2: Register\nChoose an option: ")
 
-with open ('data/base_effectiveness.json', 'r') as f:
-    be_data = json.load(f)
+    user = None
+    if choice == '1':
+        user = login_user(db)
+    elif choice == '2':
+        user = register_user(db)
 
-for d in be_data:
-    name = d["intervention"]
-    base_effect = d["base_effectiveness"]
-    theme = d["description"]
+    if not user:
+        print("Exiting app.")
+        return
 
-    interventions.append(iv.Intervention(name, theme, base_effect=base_effect)) # Appends Intervention objects to interventions[]
-    # TODO: Implement stages
+    db.close()
 
-
-
-
+if __name__ == "__main__":
+    start_app()

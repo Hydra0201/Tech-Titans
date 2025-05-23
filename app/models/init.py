@@ -1,3 +1,7 @@
+# Import Base FIRST
+from app.core.database import Base
+
+# Then import models
 from .users import User
 from .projects import Project
 from .building_parameters import BuildingParameter
@@ -8,7 +12,8 @@ from .intervention_theme_impacts import InterventionThemeImpact
 from .project_interventions import ProjectIntervention
 from .project_reports import ProjectReport
 
-_all_ = [
+
+__all__ = [
     "User",
     "Project",
     "BuildingParameter",
