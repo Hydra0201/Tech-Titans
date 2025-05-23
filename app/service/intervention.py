@@ -2,11 +2,6 @@ from enum import Enum
 from typing import List, Optional
 
 
-class InterventionTheme(Enum):
-    def __init__(self, name: str):
-        # TODO: Implement (read themes from JSON/DB)
-        pass
-
 class Stage:
     def __init__(self, name: str, base_effect: float):
         self.name = name
@@ -17,7 +12,7 @@ class Intervention:
     def __init__(
         self, 
         name: str, 
-        theme: InterventionTheme, 
+        theme: str, 
         stages: Optional[List[Stage]] = None, # list of Stage objects, or defaults to None
         base_effect: Optional[float] = None
     ): 
