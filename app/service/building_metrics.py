@@ -7,7 +7,10 @@ class BuildingMetrics:
         self.metrics = {}
 
     def read_metrics(self, bm_data):
-        self.metrics = bm_data
+        self.metrics = bm_data["building_metrics"]
+
+    def get_all_metrics(self):
+        return self.metrics
 
     def get_metric_value(self, name):
         return self.metrics.get(name, {}).get("value")
