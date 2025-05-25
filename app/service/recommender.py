@@ -25,7 +25,7 @@ class Recommender:
             score = intervention.stages[0].base_effect * (1 + modifier)
             candidates.append((score, intervention))
 
-        candidates.sort(reverse=True, key=lambda x: x[0])
+        candidates.sort(reverse=True, key=lambda x: x[0]) # Lambda key func sorts tuples by first element (score)
 
 
 

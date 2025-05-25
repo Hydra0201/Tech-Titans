@@ -18,7 +18,7 @@ def metrics_data():
         return json.load(f)
 
 
-def full_test(be_data, metrics_data):
+def test_full(be_data, metrics_data):
 
     target_scores = {
         "Reducing Operational Carbon": 1.5,
