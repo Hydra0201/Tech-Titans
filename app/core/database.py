@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql://postgres:87654321@localhost:5433/carbonbalance"
+DATABASE_URL = "postgresql://postgres:akhilesh74@localhost:5432/carbonbalance"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -26,8 +26,9 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        from .import_data import import_themes, import_interventions
+        from .import_data import import_themes, import_interventions, import_intervention_theme_impacts
         import_themes(db)
         import_interventions(db)
+        import_intervention_theme_impacts(db)
     finally:
         db.close()
