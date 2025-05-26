@@ -26,8 +26,9 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        from .import_data import import_themes, import_interventions
+        from .import_data import import_themes, import_interventions, import_intervention_theme_impacts
         import_themes(db)
         import_interventions(db)
+        import_intervention_theme_impacts(db)
     finally:
         db.close()

@@ -2,8 +2,10 @@ from datetime import datetime
 import json
 import os
 from sqlalchemy.orm import Session
+from app.models.intervention_theme_impacts import InterventionThemeImpact
 from app.models.themes import Theme
 from app.models.interventions import Intervention
+
 
 def import_themes(db: Session):
     """
@@ -94,3 +96,61 @@ def import_interventions(db: Session):
         #print(f" Error importing interventions: {str(e)}")
         return False 
 
+
+def import_intervention_theme_impacts(db: Session):
+    """
+    Import intervention-theme impacts from JSON file into database
+    """
+    try:
+        # Get the absolute path to the JSON file
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        json_path = os.path.join(base_dir, "data", "intervention_dependencies.json")
+        
+        # Check if impacts already exist
+        if db.query(InterventionThemeImpact).count() > 0:
+            #print("Intervention-Theme impacts already exist in database. Skipping import.")
+            return False
+        
+        # Load JSON data
+        with open(json_path, 'r') as file:
+            impacts_data = json.load(file)
+        
+        # Import impacts
+        impacts = []
+        for item in impacts_data:
+            # Get intervention by name
+            intervention = db.query(Intervention).filter_by(name=item["source_intervention"]).first()
+            if not intervention:
+                #print(f"Intervention not found: {item['source_intervention']}")
+                continue
+                
+            # Get theme by name
+            theme = db.query(Theme).filter_by(name=item["target_theme"]).first()
+            if not theme:
+                #print(f"Theme not found: {item['target_theme']}")
+                continue
+            
+            # Create impact record
+            impact = InterventionThemeImpact(
+                intervention_id=intervention.id,
+                theme_id=theme.id,
+                impact_rating=item["effect_percentage"],
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            impacts.append(impact)
+        
+        db.bulk_save_objects(impacts)
+        db.commit()
+        return True
+    
+    except FileNotFoundError:
+        #print(f"Intervention dependencies file not found at: {json_path}")
+        return False
+    except json.JSONDecodeError:
+        #print(f"Invalid JSON format in intervention dependencies file at: {json_path}")
+        return False
+    except Exception as e:
+        db.rollback()
+        #print(f" Error importing intervention-theme impacts: {str(e)}")
+        return False
