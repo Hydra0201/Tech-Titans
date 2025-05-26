@@ -1,6 +1,6 @@
 [
     {
-        "Interventions": "Remove basement",
+        "Interventions": "Remove new basement",
         "Intervention Description": "Removal of basement and utilise above ground space"
     },
     {
@@ -45,23 +45,23 @@
     },
     {
         "Interventions": "Glazing ratio improvement",
-        "Intervention Description": "~50% of fa\u00e7ade glazed"
+        "Intervention Description": "~50% of façade glazed"
     },
     {
         "Interventions": "Glazing ratio improvement",
-        "Intervention Description": "~45% of fa\u00e7ade glazed"
+        "Intervention Description": "~45% of façade glazed"
     },
     {
         "Interventions": "Glazing ratio improvement",
-        "Intervention Description": "~40% of fa\u00e7ade glazed"
+        "Intervention Description": "~40% of façade glazed"
     },
     {
         "Interventions": "Glazing ratio improvement",
-        "Intervention Description": "~35% of fa\u00e7ade glazed"
+        "Intervention Description": "~35% of façade glazed"
     },
     {
         "Interventions": "Glazing ratio improvement",
-        "Intervention Description": "~30% of fa\u00e7ade glazed"
+        "Intervention Description": "~30% of façade glazed"
     },
     {
         "Interventions": "External Wall U-Value enhancements",
@@ -88,15 +88,15 @@
         "Intervention Description": "Stage 03: U-Value <1.0w/m2.k (Triple Glazed)"
     },
     {
-        "Interventions": "Fa\u00e7ade Air-tightness",
+        "Interventions": "Façade Air-tightness",
         "Intervention Description": "Stage 01: <3"
     },
     {
-        "Interventions": "Fa\u00e7ade Air-tightness",
+        "Interventions": "Façade Air-tightness",
         "Intervention Description": "Stage 02: <2"
     },
     {
-        "Interventions": "Fa\u00e7ade Air-tightness",
+        "Interventions": "Façade Air-tightness",
         "Intervention Description": "Stage 03: <1 (values to be confirmed)"
     },
     {
@@ -292,15 +292,15 @@
         "Intervention Description": "High intervention: Extensive use of PV; facades?"
     },
     {
-        "Interventions": "Low intervention",
+        "Interventions": "Loadshedding low",
         "Intervention Description": "Basisc Loadshedding"
     },
     {
-        "Interventions": "Medium intervention",
+        "Interventions": "Loadshedding medium",
         "Intervention Description": "Load shedding including energy monitorigin and responding to energy demand etc"
     },
     {
-        "Interventions": "High Intervention",
+        "Interventions": "Loadshedding high",
         "Intervention Description": "Grid independence"
     },
     {
@@ -336,15 +336,15 @@
         "Intervention Description": "Stage 04 - Proactive fault detection and automatic resolution predicting when equipment is likley to fail or require maintenance."
     },
     {
-        "Interventions": "Low intervention",
+        "Interventions": "Emissions low",
         "Intervention Description": "Reduction in emissions through site operations; turnign off waiting plant etc."
     },
     {
-        "Interventions": "Medium intervention",
+        "Interventions": "Emissions medium",
         "Intervention Description": "Reduction in omissions through more rigourous site operational changes including introduction of renewables generation on site setup"
     },
     {
-        "Interventions": "High Intervention",
+        "Interventions": "Emissions high",
         "Intervention Description": "Use of electric vehicles and plant"
     },
     {
@@ -489,7 +489,7 @@
     },
     {
         "Interventions": "Survey & Analysis",
-        "Intervention Description": "Review local planning requirements for minimum analysis and thresholds for wind-speed etc. \u2013 ensure that the project is compliant. E.g. in the City of London microclimate requirement; Hong Kong, LEED, BREEAM and DGNB-requirements regarding microclimate assessment levels.\nIf there are no specific planning requirements, provide a desktop study of prevailing local conditions."
+        "Intervention Description": "Review local planning requirements for minimum analysis and thresholds for wind-speed etc. – ensure that the project is compliant. E.g. in the City of London microclimate requirement; Hong Kong, LEED, BREEAM and DGNB-requirements regarding microclimate assessment levels.\nIf there are no specific planning requirements, provide a desktop study of prevailing local conditions."
     },
     {
         "Interventions": "Survey & Analysis",
@@ -501,7 +501,7 @@
     },
     {
         "Interventions": "Survey & Analysis",
-        "Intervention Description": "Conduct wind comfort assessment with vegetation and mitigation option included (min 16 wind directions) DGNB+ on microclimate as level 3 plus testing the mitigation steps on site \u2013 follow-up after handover and measuring the efficiency of the measures.\nOutdoor thermal comfort detailed analysis predicting hourly felt temperature values for the final design during the most critical parts of the year."
+        "Intervention Description": "Conduct wind comfort assessment with vegetation and mitigation option included (min 16 wind directions) DGNB+ on microclimate as level 3 plus testing the mitigation steps on site – follow-up after handover and measuring the efficiency of the measures.\nOutdoor thermal comfort detailed analysis predicting hourly felt temperature values for the final design during the most critical parts of the year."
     },
     {
         "Interventions": "Survey & Analysis",
@@ -529,7 +529,7 @@
     },
     {
         "Interventions": "Safety Equipment provision",
-        "Intervention Description": "Provide technical safety equipment like fire detection and alarm systems, increasing the response capacity and users\u2019 feelings of safety, while discouraging potential offenders"
+        "Intervention Description": "Provide technical safety equipment like fire detection and alarm systems, increasing the response capacity and users' feelings of safety, while discouraging potential offenders"
     },
     {
         "Interventions": "Eliminate blind corners, confined spaces and hiding places",
@@ -544,7 +544,7 @@
         "Intervention Description": "Use Integrated Pest Management (IPM) concepts and requirements into facility design and construction for both interior, landscape and grass pest"
     },
     {
-        "Interventions": "Upgrade the physical security using classified building parts RC (Resistance Class)",
+        "Interventions": "Upgrade the physical security using classified building parts RC(Resistance Class)",
         "Intervention Description": "Upgrade the physical security using classified building parts RC (Resistance Class)"
     },
     {
@@ -581,7 +581,7 @@
     },
     {
         "Interventions": "Promotion of Activity",
-        "Intervention Description": "Rewards linked to \u2018steps\u2019."
+        "Intervention Description": "Rewards linked to 'steps'."
     },
     {
         "Interventions": "Staircase Use",
@@ -644,7 +644,7 @@
         "Intervention Description": "Condensate recovery from HVAC"
     },
     {
-        "Interventions": "BREEAM Wat02/03 ",
+        "Interventions": "BREEAM Wat02/03",
         "Intervention Description": "Compliant Monitoring & Leak detection at main meter + sub metering for uses above 10% demand"
     },
     {
@@ -653,7 +653,7 @@
     },
     {
         "Interventions": "Smart Meters",
-        "Intervention Description": "Stage 02 - Smart meters with AMI for detailed consumption feedback\ni.e \u201c70% of your potable water is recycled\u201d"
+        "Intervention Description": "Stage 02 - Smart meters with AMI for detailed consumption feedback\ni.e '70% of your potable water is recycled'"
     },
     {
         "Interventions": "Smart Meters",
@@ -788,7 +788,7 @@
         "Intervention Description": "Stage 02 - Comprehensive CCTV strategy with CCTV analytics to identify suspicious behaviour"
     },
     {
-        "Interventions": "Identification of relevant functionalities ",
+        "Interventions": "Identification of relevant functionalities",
         "Intervention Description": "Undertake appropriate consultation with each stakeholder group to get opinion and feedback from all stakeholders with the aim of incorporating feedback into the design."
     },
     {
