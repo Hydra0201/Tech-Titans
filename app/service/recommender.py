@@ -30,3 +30,6 @@ class Recommender:
 
 
         return [i for _, i in candidates[:count]]
+
+# This should probably read directly from SystemState through a getter, rather than requiring the class to be 
+# reinitialised with the new list of intervention in each time this class is needed

@@ -18,7 +18,7 @@ class Intervention:
         base_effect: Optional[float] = None
     ): 
         self.name = name
-        self.theme = theme
+        self.theme = theme.strip()
 
         if stages is None and base_effect is not None:
             self.stages = [Stage("Standalone", base_effect)]

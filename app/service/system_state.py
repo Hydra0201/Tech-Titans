@@ -31,8 +31,10 @@ class SystemState:
                         f"Unknown theme '{theme}' in dependency for intervention '{Intervention.name}'"
                     )
                 self.theme_modifiers[theme] += effect / 100.0
-        for theme, modifier in self.theme_modifiers.items():
-            self.theme_scores[theme] += Intervention.stages[0].base_effect * (1 + modifier)
+        theme = Intervention.theme
+        modifier = self.theme_modifiers.get(theme, 0)
+        self.theme_scores[theme] += Intervention.stages[0].base_effect * (1 + modifier)
+
 
     def update_target_scores(self, new_target_scores: dict):
         for key in new_target_scores:
