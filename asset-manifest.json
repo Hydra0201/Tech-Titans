@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Tech-Titans/static/css/main.f855e6bc.css",
+    "main.js": "/Tech-Titans/static/js/main.3e84a587.js",
+    "static/js/453.6f3ad7b4.chunk.js": "/Tech-Titans/static/js/453.6f3ad7b4.chunk.js",
+    "index.html": "/Tech-Titans/index.html",
+    "main.f855e6bc.css.map": "/Tech-Titans/static/css/main.f855e6bc.css.map",
+    "main.3e84a587.js.map": "/Tech-Titans/static/js/main.3e84a587.js.map",
+    "453.6f3ad7b4.chunk.js.map": "/Tech-Titans/static/js/453.6f3ad7b4.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f855e6bc.css",
+    "static/js/main.3e84a587.js"
+  ]
+}
