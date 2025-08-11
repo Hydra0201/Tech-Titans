@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 
 scaling_bp = Blueprint('scaling', __name__)
 
-# TODO: Make these all POST routes instead, which update a Redis store containing the current effectiveness values for each intervention.
+# TODO: Make these all POST routes instead, which update a Redis store or session DB containing the current effectiveness values for each intervention.
 # This is preferable as we can just keep all of the information and calculations on the backend rathan than pass things around. Then, we can
 # just have a route which returns the three best interventions currently.
 
