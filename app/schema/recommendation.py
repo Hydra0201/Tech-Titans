@@ -1,5 +1,6 @@
 # carbonbalance/models/recommendation.py
-from sqlalchemy import ForeignKey, Integer, Numeric, UniqueConstraint, CheckConstraint, Sequence
+from datetime import datetime
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, UniqueConstraint, CheckConstraint, Sequence
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 from ..db.base import Base
@@ -22,7 +23,9 @@ class Recommendation(Base):
 
     final_effectiveness: Mapped[float] = mapped_column(Numeric(6,4), nullable=False)
     rank: Mapped[int] = mapped_column(Integer, nullable=False)
-    created_at = mapped_column(server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     __table_args__ = (
         UniqueConstraint("recommendation_id", "rank", name="uq_rec_rank_per_batch"),
