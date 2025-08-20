@@ -1,19 +1,15 @@
 import pytest
 from flask import Flask, url_for
-from routes.building_metrics import metrics_bp
+from app.routes.building_metrics import metrics_bp
 from unittest.mock import MagicMock
 
 @pytest.fixture
 def app():
     app = Flask(__name__)
     app.config.update(TESTING=True)
-    app.register_blueprint(metrics_bp)
+    app.register_blueprint(metrics_bp, url_prefix="/api")
     app.config["PG_CONN"] = MagicMock() # Mock DB conn
     return app
-
-@pytest.fixture
-def client(app):
-    return app.test_client()
 
 @pytest.fixture
 def client(app):
@@ -40,11 +36,15 @@ def test_send_metrics_success(client, app):
 
     assert resp.status_code == 200
 
-def test_send_metrics_invalid_payload(client):
+def test_send_metrics_invalid_payload(client, app):
+    with app.test_request_context():
+        path = url_for("metrics.send_metrics", project_id=123)
+
+
     # Payload missing "metrics"
     payload = {"foo": "bar"}
-    response = client.post("/projects/123/metrics", json=payload)
+    resp = client.post(path, json = payload)
 
-    assert response.status_code == 400
-    data = response.get_json()
+    assert resp.status_code == 400
+    data = resp.get_json()
     assert "message" in data or "error" in data

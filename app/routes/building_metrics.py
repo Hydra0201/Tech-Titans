@@ -1,10 +1,17 @@
 from flask import Blueprint, request, jsonify, current_app
-from services import scoring
+from ..services import scoring
 import psycopg2
 from psycopg2.extras import RealDictCursor
-# import DB
+from sqlalchemy import text
+from .. import get_conn
 
 metrics_bp = Blueprint('metrics', __name__)
+
+@metrics_bp.route('/hello', methods=['GET']) # DB Test
+def get_health():
+    conn = get_conn()
+    row = conn.execute(text("SELECT 1 AS ok")).one()
+    return {"ok": row.ok}, 200
 
 # Route to POST project building metrics to DB
 @metrics_bp.route('/projects/<int:project_id>/metrics', methods=['POST'])
@@ -19,28 +26,35 @@ def send_metrics(project_id):
     except Exception:
         return jsonify({"error": "Metrics must be numeric mapping: {metric_id: number}"}), 400
 
-    conn: psycopg2.Connection = current_app.config["PG_CONN"]
+    conn = get_conn()
+
     try:
-        with conn:
-            scoring.save_project_metrics(conn, project_id, metrics)
+        with conn.begin():
+            scoring.save_project_metrics(conn, project_id, {int(k): float(v) for k,v in metrics.items()})
             scores = scoring.metric_recompute(conn, project_id)
             scoring.upsert_runtime_scores(conn, project_id, scores)
-        return jsonify({"Updated": len(scores)}), 200
+        return {"updated": len(scores)}, 200
     except Exception as e:
-        return jsonify({"Error": "Metrics recompute failed"}), 500
+        current_app.logger.exception("Metrics recompute failed")
+        return {"error": "Metrics recompute failed"}, 500
 
 
 # Fetch top three interventions from DB
-@metrics_bp.route("/projects/<int:project_id>/recommendations", methods=["GET"])
-def get_recommendations(project_id):
-    conn: psycopg2.Connection = current_app.config["PG_CONN"]   
-    with conn.cursor(cursor_factory=RealDictCursor) as cur: # RealDictCursor is psycopg2, need to change this to row factor if we change versions
-        cur.execute("""
-            SELECT r.intervention_id, i.name, r.score
-            FROM runtime_scores r
-            JOIN interventions i ON i.id = r.intervention_id
-            WHERE r.project_id = %s
-            ORDER BY r.score DESC
+@metrics_bp.get("/projects/<int:project_id>/recommendations")
+def get_recommendations(project_id: int):
+
+    conn = get_conn()
+    rows = conn.execute(
+        text(
+            """
+            SELECT r.intervention_id, i.name, r.adjusted_base_effectiveness
+            FROM runtime_scores AS r
+            JOIN interventions AS i ON i.id = r.intervention_id
+            WHERE r.project_id = :pid
+            ORDER BY r.adjusted_base_effectiveness DESC
             LIMIT 3
-        """, (project_id,))
-        return jsonify({"recommendations": cur.fetchall()}), 200
+            """
+        ),
+        {"pid": project_id},
+    ).mappings().all()
+    return jsonify({"recommendations": rows}), 200

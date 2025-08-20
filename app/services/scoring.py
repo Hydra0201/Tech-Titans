@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Callable
-import psycopg2 # Just 'psycopg' is the newer library, should perhaps migrate
+from sqlalchemy import text
+from sqlalchemy.engine import Connection
 
 @dataclass
 class ScoreBreakdown:
@@ -29,9 +30,13 @@ class DependencyRule:
     multiplier: float
     reason: str
 
-def fetch_metric_rules(conn) -> List[MetricRule]:
-    with conn.cursor() as cur:
-        cur.execute("""
+def fetch_metric_rules(conn: Connection) -> List[MetricRule]:
+    """
+    Load metric rules from DB, return as list of MetricRule dataclasses.
+    """
+    rows = conn.execute(
+        text(
+            """
             SELECT
               intervention_id,
               metric_id,
@@ -40,65 +45,120 @@ def fetch_metric_rules(conn) -> List[MetricRule]:
               multiplier,
               reason
             FROM metric_rules
-        """)
-        colnames = [desc[0] for desc in cur.description]
-        rows = [dict(zip(colnames, row)) for row in cur.fetchall()]
+            """
+        )
+    ).mappings().all()
+
     return [MetricRule(**row) for row in rows]
 
 
-def save_project_metrics(conn, project_id: int, metrics: Dict[int, float]) -> None:
-    # metrics: {metric_id: value}
-    with conn.cursor() as cur:
-        for mid, val in metrics.items():
-            cur.execute("""
-                INSERT INTO project_metrics (project_id, metric_id, value)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (project_id, metric_id)
-                DO UPDATE SET value = EXCLUDED.value
-            """, (project_id, mid, float(val)))
 
-def metric_recompute(conn, project_id: int) -> dict[int, float]:
-    with conn.cursor() as cur:
-        cur.execute("SELECT id, base_effectiveness FROM interventions")
-        base_eff = {iid: float(base) for iid, base in cur.fetchall()}
+def save_project_metrics(conn: Connection, project_id: int, metrics: Dict[int, float]) -> None:
+    """
+    Save metrics for a project.
+    Expects a table with columns (project_id, metric_id, value)
+    and a unique constraint on (project_id, metric_id).
+    """
+    if not metrics:
+        return
 
-    # project metrics (id -> value)
-    with conn.cursor() as cur:
-        cur.execute("""
-            SELECT metric_id, value
-            FROM project_metrics
-            WHERE project_id = %s
-        """, (project_id,))
-        metrics = {mid: float(val) for mid, val in cur.fetchall()}
+    payload = [
+        {"project_id": project_id, "metric_id": int(mid), "value": float(val)}
+        for mid, val in metrics.items()
+    ]
 
-    metric_rules = fetch_metric_rules(conn)
+    conn.execute(
+        text(
+            """
+            INSERT INTO projects (project_id, metric_id, value)
+            VALUES (:project_id, :metric_id, :value)
+            ON CONFLICT (project_id, metric_id)
+            DO UPDATE SET value = EXCLUDED.value
+            """
+        ),
+        payload,
+    )
 
-    # Seed multipliers with 1.0
-    mult_by_intervention: dict[int, float] = {intervention_id: 1.0 for intervention_id in base_eff}
+def metric_recompute(conn: Connection, project_id: int) -> Dict[int, float]:
+    """
+    Recompute per-intervention scores for a project based on:
+      - interventions.base_effectiveness
+      - metric_rules applied to the project’s current metrics
+    Returns: {intervention_id: score}
+    """
+    # Base effectiveness for all interventions
+    base_eff = {
+        row.id: float(row.base_effectiveness)
+        for row in conn.execute(
+            text("SELECT id, base_effectiveness FROM interventions")
+        ).mappings()
+    }
 
-    def in_bounds(metric_value, low, high):
-        if metric_value is None: return False
-        if low is not None and metric_value < low: return False
-        if high is not None and metric_value > high: return False
+    # Project metrics: metric_id -> value
+    metrics = {
+        row.metric_id: float(row.value)
+        for row in conn.execute(
+            text(
+                """
+                SELECT metric_id, value
+                FROM projects
+                WHERE project_id = :pid
+                """
+            ),
+            {"pid": project_id},
+        ).mappings()
+    }
+
+    rules = fetch_metric_rules(conn)
+
+    # Seed multipliers at 1.0
+    mult_by_intervention: Dict[int, float] = {iid: 1.0 for iid in base_eff}
+
+    def in_bounds(metric_value: Optional[float], low: Optional[float], high: Optional[float]) -> bool:
+        if metric_value is None:
+            return False
+        if low is not None and metric_value < low:
+            return False
+        if high is not None and metric_value > high:
+            return False
         return True
 
+    # Apply metric rules
+    for rule in rules:
+        mv = metrics.get(rule.metric_id)
+        if in_bounds(mv, rule.lower, rule.upper):
+            mult_by_intervention[rule.intervention_id] *= float(rule.multiplier)
 
-    # Check each metric rule, add multiplier mult_by_intervention where rule applies
-    for rule in metric_rules:
-        metric_value = metrics.get(rule.metric_id)
-        if in_bounds(metric_value, rule.lower, rule.upper):
-            mult_by_intervention[rule.intervention_id] *= rule.multiplier
-
-    return {intervention_id: base_eff[intervention_id] * mult_by_intervention[intervention_id] for intervention_id in base_eff}
+    # Final score = base_effectiveness * combined multipliers
+    return {
+        iid: base_eff[iid] * mult_by_intervention[iid]
+        for iid in base_eff
+    }
 
 
-# Update / insert into runtime table
-def upsert_runtime_scores(conn, project_id: int, scores: Dict[int, float]) -> None:
-    with conn.cursor() as cur:
-        for intervention_id, score in scores.items():
-            cur.execute("""
-                INSERT INTO runtime_scores (project_id, intervention_id, score)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (project_id, intervention_id)
-                DO UPDATE SET score = EXCLUDED.score
-            """, (project_id, intervention_id, float(score)))
+
+
+def upsert_runtime_scores(conn: Connection, project_id: int, scores: Dict[int, float]) -> None:
+    """
+    Upsert computed scores into runtime_scores.
+    Expects columns (project_id, intervention_id, score) and unique (project_id, intervention_id).
+    """
+    if not scores:
+        return
+
+    payload = [
+        {"project_id": project_id, "intervention_id": int(iid), "score": float(score)}
+        for iid, score in scores.items()
+    ]
+
+    conn.execute(
+        text(
+            """
+            INSERT INTO runtime_scores (project_id, intervention_id, score)
+            VALUES (:project_id, :intervention_id, :score)
+            ON CONFLICT (project_id, intervention_id)
+            DO UPDATE SET score = EXCLUDED.score
+            """
+        ),
+        payload,
+    )
