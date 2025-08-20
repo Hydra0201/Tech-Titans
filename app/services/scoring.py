@@ -14,8 +14,9 @@ class ScoreBreakdown:
 
 @dataclass(frozen=True)
 class MetricRule:
+    id: int
+    metric_name: str
     intervention_id: int
-    metric_id: int
     lower: Optional[float]
     upper: Optional[float]
     multiplier: float
@@ -28,7 +29,7 @@ class DependencyRule:
     lower: Optional[float]
     upper: Optional[float]
     multiplier: float
-    reason: str
+    reasoning: str
 
 def fetch_metric_rules(conn: Connection) -> List[MetricRule]:
     """
@@ -38,80 +39,106 @@ def fetch_metric_rules(conn: Connection) -> List[MetricRule]:
         text(
             """
             SELECT
-              intervention_id,
-              metric_id,
+              id,
+              cause AS metric_name,
+              effected_intervention AS intervention_id,
               lower_bound AS lower,
               upper_bound AS upper,
               multiplier,
-              reason
-            FROM metric_rules
+              reasoning
+            FROM metric_effects
             """
         )
     ).mappings().all()
 
-    return [MetricRule(**row) for row in rows]
+    out: List[MetricRule] = []
+    for r in rows:
+        out.append(MetricRule(
+            id=int(r["id"]),
+            metric_name=str(r["metric_name"]),
+            intervention_id=int(r["intervention_id"]),
+            lower=(float(r["lower"]) if r["lower"] is not None else None),
+            upper=(float(r["upper"]) if r["upper"] is not None else None),
+            multiplier=float(r["multiplier"]),
+            reason=r["reasoning"],
+        ))
+    return out
 
 
 
 def save_project_metrics(conn: Connection, project_id: int, metrics: Dict[int, float]) -> None:
-    """
-    Save metrics for a project.
-    Expects a table with columns (project_id, metric_id, value)
-    and a unique constraint on (project_id, metric_id).
-    """
-    if not metrics:
+    ALLOWED = {
+        "levels",
+        "external_wall_area",
+        "footprint_area",
+        "opening_pct",
+        "wall_to_floor_ratio",
+        "footprint_gifa",
+        "gifa_total",
+        "external_openings_area",
+        "avg_height_per_level",
+    }
+
+    updates: Dict[str, float] = {}
+    for name, val in metrics.items():
+        if name in ALLOWED and val is not None:
+            updates[name] = float(val)
+
+    if not updates:
         return
 
-    payload = [
-        {"project_id": project_id, "metric_id": int(mid), "value": float(val)}
-        for mid, val in metrics.items()
-    ]
+    set_clause = ", ".join(f'"{col}" = :{col}' for col in updates)  
+    params = {**updates, "project_id": project_id}
 
     conn.execute(
-        text(
-            """
-            INSERT INTO projects (project_id, metric_id, value)
-            VALUES (:project_id, :metric_id, :value)
-            ON CONFLICT (project_id, metric_id)
-            DO UPDATE SET value = EXCLUDED.value
-            """
-        ),
-        payload,
+        text(f"""
+            UPDATE projects
+               SET {set_clause},
+                   updated_at = now()
+             WHERE id = :project_id
+        """),
+        params,
     )
 
 def metric_recompute(conn: Connection, project_id: int) -> Dict[int, float]:
     """
-    Recompute per-intervention scores for a project based on:
-      - interventions.base_effectiveness
-      - metric_rules applied to the project’s current metrics
-    Returns: {intervention_id: score}
+    Recompute runtime scores.
+    Returns: {intervention_id: adjusted_base_effectiveness}
     """
-    # Base effectiveness for all interventions
-    base_eff = {
-        row.id: float(row.base_effectiveness)
-        for row in conn.execute(
-            text("SELECT id, base_effectiveness FROM interventions")
-        ).mappings()
-    }
 
-    # Project metrics: metric_id -> value
-    metrics = {
-        row.metric_id: float(row.value)
-        for row in conn.execute(
-            text(
-                """
-                SELECT metric_id, value
-                FROM projects
-                WHERE project_id = :pid
-                """
-            ),
-            {"pid": project_id},
-        ).mappings()
-    }
+    base_rows = conn.execute(
+        text("""
+            SELECT id, COALESCE(base_effectiveness, 0) AS base_effectiveness
+            FROM interventions
+        """)
+    ).mappings().all()
+    base_eff = {int(r["id"]): float(r["base_effectiveness"]) for r in base_rows}
+    if not base_eff:
+        return {}
 
     rules = fetch_metric_rules(conn)
+    if not rules:
+        return base_eff 
 
-    # Seed multipliers at 1.0
+    needed_cols = sorted({r.metric_name for r in rules})
+
+    select_list = ", ".join(f'"{c}"' for c in needed_cols)
+    proj_row = conn.execute(
+        text(f"""
+            SELECT {select_list}
+            FROM projects
+            WHERE id = :pid
+        """),
+        {"pid": project_id},
+    ).mappings().one_or_none()
+
+    metrics_by_name: Dict[str, float] = {}
+    if proj_row:
+        for c in needed_cols:
+            v = proj_row.get(c)
+            if v is not None:
+                metrics_by_name[c] = float(v)
+
     mult_by_intervention: Dict[int, float] = {iid: 1.0 for iid in base_eff}
 
     def in_bounds(metric_value: Optional[float], low: Optional[float], high: Optional[float]) -> bool:
@@ -123,26 +150,18 @@ def metric_recompute(conn: Connection, project_id: int) -> Dict[int, float]:
             return False
         return True
 
-    # Apply metric rules
     for rule in rules:
-        mv = metrics.get(rule.metric_id)
+        mv = metrics_by_name.get(rule.metric_name)
         if in_bounds(mv, rule.lower, rule.upper):
-            mult_by_intervention[rule.intervention_id] *= float(rule.multiplier)
+            mult_by_intervention[rule.intervention_id] *= rule.multiplier
 
-    # Final score = base_effectiveness * combined multipliers
-    return {
-        iid: base_eff[iid] * mult_by_intervention[iid]
-        for iid in base_eff
-    }
+    return {iid: base_eff[iid] * mult_by_intervention[iid] for iid in base_eff}
+
 
 
 
 
 def upsert_runtime_scores(conn: Connection, project_id: int, scores: Dict[int, float]) -> None:
-    """
-    Upsert computed scores into runtime_scores.
-    Expects columns (project_id, intervention_id, score) and unique (project_id, intervention_id).
-    """
     if not scores:
         return
 
@@ -152,13 +171,11 @@ def upsert_runtime_scores(conn: Connection, project_id: int, scores: Dict[int, f
     ]
 
     conn.execute(
-        text(
-            """
-            INSERT INTO runtime_scores (project_id, intervention_id, score)
+        text("""
+            INSERT INTO runtime_scores (project_id, intervention_id, adjusted_base_effectiveness)
             VALUES (:project_id, :intervention_id, :score)
             ON CONFLICT (project_id, intervention_id)
-            DO UPDATE SET score = EXCLUDED.score
-            """
-        ),
+            DO UPDATE SET adjusted_base_effectiveness = EXCLUDED.adjusted_base_effectiveness
+        """),
         payload,
     )

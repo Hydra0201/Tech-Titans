@@ -13,28 +13,39 @@ def get_health():
     row = conn.execute(text("SELECT 1 AS ok")).one()
     return {"ok": row.ok}, 200
 
+
 # Route to POST project building metrics to DB
-@metrics_bp.route('/projects/<int:project_id>/metrics', methods=['POST'])
-def send_metrics(project_id):
-    payload = request.get_json(force=True)
+@metrics_bp.post("/projects/<int:project_id>/metrics")
+def send_metrics(project_id: int):
+    payload = request.get_json(silent=True) or {}
+    dry_run = bool(
+        request.args.get("dry_run")
+    )
 
-    if not payload:
-        return jsonify({"message": "Error: Form data does not match expected format."}), 400 
-    
+    metrics_raw = payload.get("metrics")
+    if not isinstance(metrics_raw, dict):
+        return {"error": "Invalid payload: missing 'metrics' dict"}, 400
+
     try:
-        metrics = {int(k): float(v) for k, v in payload["metrics"].items()} # Type check
+        metrics = {int(k): float(v) for k, v in metrics_raw.items()}
     except Exception:
-        return jsonify({"error": "Metrics must be numeric mapping: {metric_id: number}"}), 400
+        return {"error": "Metrics must be numeric mapping: {metric_id: number}"}, 400
 
-    conn = get_conn()
-
+    conn = get_conn()                  
+    tx = conn.begin()                   
     try:
-        with conn.begin():
-            scoring.save_project_metrics(conn, project_id, {int(k): float(v) for k,v in metrics.items()})
-            scores = scoring.metric_recompute(conn, project_id)
-            scoring.upsert_runtime_scores(conn, project_id, scores)
-        return {"updated": len(scores)}, 200
-    except Exception as e:
+        scoring.save_project_metrics(conn, project_id, metrics)
+        scores = scoring.metric_recompute(conn, project_id)
+        scoring.upsert_runtime_scores(conn, project_id, scores)
+
+        if dry_run:
+            tx.rollback()               # rollback chnges (test run)
+        else:
+            tx.commit()                 # persist changes
+
+        return {"updated": len(scores), "dry_run": dry_run}, 200
+    except Exception:
+        tx.rollback()
         current_app.logger.exception("Metrics recompute failed")
         return {"error": "Metrics recompute failed"}, 500
 
