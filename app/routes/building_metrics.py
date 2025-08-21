@@ -1,7 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
 from ..services import scoring
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from sqlalchemy import text
 from .. import get_conn
 
@@ -69,3 +67,25 @@ def get_recommendations(project_id: int):
         {"pid": project_id},
     ).mappings().all()
     return jsonify({"recommendations": rows}), 200
+
+# Fetch existing projects
+@metrics_bp.get("/projects/<int:user_id>")
+def get_projects(user_id: int):
+
+    conn = get_conn()
+    rows = conn.execute(
+    text("""
+        SELECT COALESCE(json_agg(p), '[]'::json) AS data
+        FROM (
+        SELECT id, name, status, project_type, building_type, levels,
+                external_wall_area, footprint_area, opening_pct, wall_to_floor_ratio,
+                footprint_gifa, gifa_total, external_openings_area, avg_height_per_level,
+                created_at, updated_at
+        FROM projects
+        WHERE owner_user_id = :user_id
+        ORDER BY updated_at DESC
+        ) p
+    """),
+    {"user_id": user_id},
+    ).scalar_one()
+    return {"projects": rows}, 200
