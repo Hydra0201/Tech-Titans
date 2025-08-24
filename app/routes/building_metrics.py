@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
-from ..services import scoring
+from ..services import rules_metric
 from sqlalchemy import text
 from .. import get_conn
 
@@ -37,9 +37,9 @@ def send_metrics(project_id: int):
     conn = get_conn()                  
     tx = conn.begin()                   
     try:
-        scoring.save_project_metrics(conn, project_id, metrics)
-        scores = scoring.metric_recompute(conn, project_id)
-        scoring.upsert_runtime_scores(conn, project_id, scores)
+        rules_metric.save_project_metrics(conn, project_id, metrics)
+        scores = rules_metric.metric_recompute(conn, project_id)
+        rules_metric.upsert_runtime_scores(conn, project_id, scores)
 
         if dry_run:
             tx.rollback()               # rollback chnges (test run)

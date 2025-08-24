@@ -1,35 +1,8 @@
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
+from .types import MetricRule, in_bounds
 
-@dataclass
-class ScoreBreakdown:
-    base: float
-    metric_factor: float
-    dependency_factor: float
-    theme_weight: float
-    final: float
-    reasons: List[str]
-
-@dataclass(frozen=True)
-class MetricRule:
-    id: int
-    metric_name: str
-    intervention_id: int
-    lower: Optional[float]
-    upper: Optional[float]
-    multiplier: float
-    reason: str
-
-@dataclass(frozen=True)
-class DependencyRule:
-    cause_intervention_id: int
-    effect_intervention_id: int
-    lower: Optional[float]
-    upper: Optional[float]
-    multiplier: float
-    reasoning: str
 
 def fetch_metric_rules(conn: Connection) -> List[MetricRule]:
     """
@@ -63,6 +36,7 @@ def fetch_metric_rules(conn: Connection) -> List[MetricRule]:
             reason=r["reasoning"],
         ))
     return out
+
 
 
 
@@ -156,15 +130,6 @@ def metric_recompute(conn: Connection, project_id: int) -> Dict[int, float]:
                 metrics_by_name[c] = float(v)
 
     mult_by_intervention: Dict[int, float] = {iid: 1.0 for iid in base_eff}
-
-    def in_bounds(metric_value: Optional[float], low: Optional[float], high: Optional[float]) -> bool:
-        if metric_value is None:
-            return False
-        if low is not None and metric_value < low:
-            return False
-        if high is not None and metric_value > high:
-            return False
-        return True
 
     for rule in rules:
         mv = metrics_by_name.get(rule.metric_name)
