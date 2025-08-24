@@ -66,7 +66,7 @@ def fetch_metric_rules(conn: Connection) -> List[MetricRule]:
 
 
 
-def save_project_metrics(conn: Connection, project_id: int, metrics: Dict[int, float]) -> None:
+def save_project_metrics(conn: Connection, project_id: int, metrics: Dict[str, float]) -> int:
     ALLOWED = {
         "levels",
         "external_wall_area",
@@ -79,26 +79,42 @@ def save_project_metrics(conn: Connection, project_id: int, metrics: Dict[int, f
         "avg_height_per_level",
     }
 
+    # Filter + coerce types
     updates: Dict[str, float] = {}
-    for name, val in metrics.items():
+    for name, val in (metrics or {}).items():
         if name in ALLOWED and val is not None:
-            updates[name] = float(val)
+            try:
+                updates[name] = float(val)
+            except Exception:
+                pass
 
     if not updates:
-        return
+        return 0
 
-    set_clause = ", ".join(f'"{col}" = :{col}' for col in updates)  
+    # Create row if does not exist
+    conn.execute(
+        text("""
+            INSERT INTO projects (id, name, status, created_at, updated_at)
+            VALUES (:project_id, 'Untitled', 'draft', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ON CONFLICT (id) DO NOTHING
+        """),
+        {"project_id": project_id},
+    )
+
+    set_clause = ", ".join(f"{col} = :{col}" for col in updates.keys())
     params = {**updates, "project_id": project_id}
 
-    conn.execute(
+    # Insert values
+    res = conn.execute(
         text(f"""
             UPDATE projects
                SET {set_clause},
-                   updated_at = now()
+                   updated_at = CURRENT_TIMESTAMP
              WHERE id = :project_id
         """),
         params,
     )
+    return int(res.rowcount or 0)
 
 def metric_recompute(conn: Connection, project_id: int) -> Dict[int, float]:
     """

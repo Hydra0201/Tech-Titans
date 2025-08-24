@@ -16,18 +16,23 @@ def get_health():
 @metrics_bp.post("/projects/<int:project_id>/metrics")
 def send_metrics(project_id: int):
     payload = request.get_json(silent=True) or {}
-    dry_run = bool(
-        request.args.get("dry_run")
-    )
+
+    # Dealing with Python string coercion bs
+    def parse_bool(s: str | None) -> bool:
+        if s is None: 
+            return False
+        return s.strip().lower() in {"1","true","t","yes","y","on"}
+
+    dry_run = parse_bool(request.args.get("dry_run"))
 
     metrics_raw = payload.get("metrics")
     if not isinstance(metrics_raw, dict):
         return {"error": "Invalid payload: missing 'metrics' dict"}, 400
 
     try:
-        metrics = {int(k): float(v) for k, v in metrics_raw.items()}
+        metrics = {str(k): float(v) for k, v in (metrics_raw or {}).items()}
     except Exception:
-        return {"error": "Metrics must be numeric mapping: {metric_id: number}"}, 400
+        return {"error": "Metrics must be numeric mapping: {metric_name: number}"}, 400
 
     conn = get_conn()                  
     tx = conn.begin()                   
