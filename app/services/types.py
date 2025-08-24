@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import float, List, Optional
+from typing import List, Optional
 
 @dataclass
 class ScoreBreakdown:
@@ -32,11 +32,11 @@ class InterventionRule:
     reason: str
 
 
-def in_bounds(metric_value: Optional[float], low: Optional[float], high: Optional[float]) -> bool:
-    if metric_value is None:
+def in_bounds(value: Optional[float], low: Optional[float], high: Optional[float]) -> bool:
+    if value is None:
         return False
-    if low is not None and metric_value < low:
+    if low is not None and value < low:
         return False
-    if high is not None and metric_value > high:
+    if high is not None and value > high:
         return False
     return True

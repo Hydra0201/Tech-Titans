@@ -38,8 +38,6 @@ def fetch_metric_rules(conn: Connection) -> List[MetricRule]:
     return out
 
 
-
-
 def save_project_metrics(conn: Connection, project_id: int, metrics: Dict[str, float]) -> int:
     ALLOWED = {
         "levels",
@@ -137,8 +135,6 @@ def metric_recompute(conn: Connection, project_id: int) -> Dict[int, float]:
             mult_by_intervention[rule.intervention_id] *= rule.multiplier
 
     return {iid: base_eff[iid] * mult_by_intervention[iid] for iid in base_eff}
-
-
 
 
 
