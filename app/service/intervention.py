@@ -32,3 +32,27 @@ class Intervention:
 
     # TODO: Write a function which loads interventions from JSON and instantiates corresponding intervention objects
     
+def recommend_interventions_for_theme(theme_name: str, target: float, dependencies: list):
+    """
+    Recommend a list of interventions that help achieve the given target score for a theme.
+    Selects interventions whose total effect is closest to the target without exceeding it.
+    """
+    # Filter interventions that positively impact the theme
+    options = [
+        dep for dep in dependencies
+        if dep["target_theme"] == theme_name and dep["effect_percentage"] > 0
+    ]
+
+    # Sort by strongest effect first
+    options.sort(key=lambda x: x["effect_percentage"], reverse=True)
+
+    total = 0
+    selected = []
+
+    for option in options:
+        effect = option["effect_percentage"]
+        if total + effect <= target:
+            selected.append(option)
+            total += effect
+
+    return selected, total

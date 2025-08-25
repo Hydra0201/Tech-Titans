@@ -5,6 +5,8 @@ from app.service.project import get_user_projects, create_project
 from app.service.building_metrics import get_building_parameters_input, save_building_parameters
 from app.models.projects import Project
 from app.models.themes import Theme
+from app.service.intervention import recommend_interventions_for_theme
+
 
 def project_details_page(db: Session, project: Project):
     """Handle building parameters input"""
@@ -48,7 +50,9 @@ def theme_rating_page(db: Session, project: Project):
     
     save_theme_ratings(db, project.id, ratings)
     print("\nTheme ratings saved!")
+
     # intervention_recommendation_page(db, project)  # Next step
+    intervention_recommendation_page(db, project)
 
 def handle_project_selection(db: Session, user_id: int):
     """Manage project selection menu"""
@@ -121,6 +125,40 @@ def start_app():
         print(f"\nError: {e}")
     finally:
         db.close()
+
+def intervention_recommendation_page(db: Session, project: Project):
+    import json
+    from app.models.project_themes_ratings import ProjectThemeRating
+
+    print("\n=== INTERVENTION RECOMMENDATIONS ===")
+
+    # Load intervention dependencies
+    with open("data/intervention_dependencies.json") as f:
+        dependencies = json.load(f)
+
+    # Get target theme ratings for this project
+    theme_ratings = db.query(ProjectThemeRating).filter_by(project_id=project.id).all()
+
+    for rating in theme_ratings:
+        theme = rating.theme.name
+        target = rating.target_rating
+
+        if not target or target <= 0:
+            continue  # Skip if no rating provided
+
+        # Recommend for this theme
+        selected, total = recommend_interventions_for_theme(theme, target, dependencies)
+
+        print(f"\n🎯 Theme: {theme} (Target: {target}%)")
+        if not selected:
+            print("  ⚠️  No suitable interventions found.")
+            continue
+
+        for s in selected:
+            print(f"  ✅ {s['source_intervention']} → +{s['effect_percentage']}%")
+
+        print(f"  Total Impact: {round(total, 2)}%")
+
 
 if __name__ == "__main__":
     start_app()
