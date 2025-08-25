@@ -14,3 +14,7 @@ package-dir = {"" = "app"}
 
 [tool.setuptools.packages.find]
 where = ["app"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["app/tests"]
