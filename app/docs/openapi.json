@@ -1,0 +1,208 @@
+openapi: 3.0.3
+info:
+  title: CarbonBalance API
+  version: "0.1.0"
+  description: |
+    API for project metrics, recommendations, and intervention effects.
+servers:
+  - url: "https://carbonbalance.roghan.me/api"
+tags:
+  - name: Metrics
+  - name: Interventions
+
+paths:
+  /hello:
+    get:
+      tags: [Metrics]
+      summary: Health check (metrics BP)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /projects/{project_id}/metrics:
+    post:
+      tags: [Metrics]
+      summary: Save project building metrics and recompute scores
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+        - $ref: "#/components/parameters/DryRun"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MetricsUpsertRequest"
+      responses:
+        "200":
+          description: Metrics saved and scores recomputed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsUpsertResponse"
+        "400":
+          description: Invalid payload
+        "500":
+          description: Recompute failed
+
+  /projects/{project_id}/recommendations:
+    get:
+      tags: [Metrics]
+      summary: Top 3 recommended interventions for a project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: List of recommendations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationsResponse"
+
+  /projects/{user_id}:
+    get:
+      tags: [Metrics]
+      summary: List projects for a user (selected columns)
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Projects
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectsResponse"
+
+
+  /projects/{project_id}/apply:
+    post:
+      tags: [Interventions]
+      summary: Apply an intervention and update dependent scores
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+        - $ref: "#/components/parameters/DryRun"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyRequest"
+      responses:
+        "200":
+          description: Scores updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplyResponse"
+        "400":
+          description: Missing or invalid intervention_id
+        "500":
+          description: Internal error applying intervention
+
+components:
+  parameters:
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema: { type: integer }
+    DryRun:
+      name: dry_run
+      in: query
+      description: >
+        If true, perform a dry-run (accepts common truthy strings: 1,true,yes,on).
+      required: false
+      schema: { type: boolean }
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        ok: { type: integer, example: 1 }
+
+    MetricsUpsertRequest:
+      type: object
+      required: [metrics]
+      properties:
+        metrics:
+          type: object
+          description: >
+            Mapping of metric name to numeric value. Only a fixed allowlist is persisted
+            (e.g., levels, external_wall_area, footprint_area, opening_pct, wall_to_floor_ratio,
+            footprint_gifa, gifa_total, external_openings_area, avg_height_per_level).
+          additionalProperties:
+            type: number
+          example:
+              levels: 10
+              external_wall_area: 2500
+              footprint_area: 900
+              opening_pct: 0.22
+
+    MetricsUpsertResponse:
+      type: object
+      properties:
+        updated: { type: integer, description: "Count of interventions whose score was recomputed" }
+        dry_run: { type: boolean }
+
+    RecommendationsResponse:
+      type: object
+      properties:
+        recommendations:
+          type: array
+          items:
+            type: object
+            properties:
+              intervention_id: { type: integer }
+              name: { type: string }
+              adjusted_base_effectiveness: { type: number }
+
+    ProjectsResponse:
+      type: object
+      properties:
+        projects:
+          type: array
+          items:
+            type: object
+            description: Project row (selected columns)
+            properties:
+              id: { type: integer }
+              name: { type: string }
+              status: { type: string }
+              project_type: { type: string }
+              building_type: { type: string }
+              levels: { type: number }
+              external_wall_area: { type: number }
+              footprint_area: { type: number }
+              opening_pct: { type: number }
+              wall_to_floor_ratio: { type: number }
+              footprint_gifa: { type: number }
+              gifa_total: { type: number }
+              external_openings_area: { type: number }
+              avg_height_per_level: { type: number }
+              created_at: { type: string, format: date-time }
+              updated_at: { type: string, format: date-time }
+            additionalProperties: true
+
+    ApplyRequest:
+      type: object
+      required: [intervention_id]
+      properties:
+        intervention_id: { type: integer, minimum: 1 }
+
+    ApplyResponse:
+      type: object
+      properties:
+        updated: { type: integer }
+        new_scores:
+          type: object
+          additionalProperties:
+            type: number
+          example: { "12": 1.32, "19": 0.84 }
+        dry_run: { type: boolean }
+

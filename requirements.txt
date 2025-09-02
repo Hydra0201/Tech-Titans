@@ -4,6 +4,8 @@ blinker==1.9.0
 -e git+https://github.com/Hydra0201/Tech-Titans.git@0d96f0d80d979d0c68b1dcbd0f3b82f08bfdeb54#egg=carbonbalance
 click==8.2.1
 Flask==3.1.1
+greenlet==3.2.4
+gunicorn==23.0.0
 iniconfig==2.1.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
@@ -16,6 +18,7 @@ psycopg2-binary==2.9.10
 py==1.11.0
 pytest==8.3.5
 python-dotenv==1.1.1
+PyYAML==6.0.2
 SQLAlchemy==2.0.43
 toml==0.10.2
 typing_extensions==4.14.1

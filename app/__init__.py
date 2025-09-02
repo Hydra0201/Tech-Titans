@@ -27,10 +27,12 @@ def create_app():
     from app.routes.interventions import interventions_bp
     from app.routes.building_metrics import metrics_bp
     from app.routes.scaling import scaling_bp
+    from app.routes.docs import docs_bp
 
     app.register_blueprint(interventions_bp, url_prefix='/api')
     app.register_blueprint(metrics_bp, url_prefix='/api')
     app.register_blueprint(scaling_bp, url_prefix='/api')
+    app.register_blueprint(docs_bp, url_prefix='/api')
 
     return app
 

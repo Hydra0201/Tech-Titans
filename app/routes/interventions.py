@@ -2,6 +2,7 @@ from flask import Blueprint, request, current_app
 from sqlalchemy import text
 from .. import get_conn
 from ..services.rules_intervention import intervention_recompute
+from flask import jsonify
 
 interventions_bp = Blueprint('interventions', __name__)
 
@@ -12,6 +13,9 @@ def get_health():
     return {"ok": row.ok}, 200
 
 
+@interventions_bp.route('health', methods=['GET'])
+def health():
+    return jsonify(ok=True)
 
 @interventions_bp.route('/projects/<int:project_id>/apply', methods=['POST'])
 def apply_intervention(project_id: int):
