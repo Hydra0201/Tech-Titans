@@ -12,8 +12,9 @@ class Project(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str | None] = mapped_column(String, nullable=True)
     project_type: Mapped[str | None] = mapped_column(String, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
     building_type: Mapped[str | None] = mapped_column(String, nullable=True)
-
+    
     levels: Mapped[int | None] = mapped_column(Integer, nullable=True)
     external_wall_area: Mapped[float | None] = mapped_column(Numeric, nullable=True)
     footprint_area: Mapped[float | None] = mapped_column(Numeric, nullable=True)

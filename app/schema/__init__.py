@@ -9,7 +9,7 @@ before you call create_all().  Usage:
 """
 
 # Core entities
-from .user import User, RoleEnum
+from .user import User, RoleEnum, AccessLevelEnum
 from .project import Project
 from .theme import Theme
 from .project_theme_score import ProjectThemeScore
@@ -24,7 +24,7 @@ from .runtime_score import RuntimeScore  # stores adjusted/theme-weighted values
 from .recommendation import Recommendation
 
 # RBAC per project
-from .project_access import ProjectAccess, ProjectRoleEnum
+from .project_access import ProjectAccess
 
 
 def register_models():
@@ -50,6 +50,7 @@ __all__ = [
     # entities
     "User",
     "RoleEnum",
+    "AccessLevelEnum",
     "Project",
     "Theme",
     "ProjectThemeScore",
@@ -63,7 +64,6 @@ __all__ = [
     "Recommendation",
     # rbac
     "ProjectAccess",
-    "ProjectRoleEnum",
     # helper
     "register_models",
 ]
