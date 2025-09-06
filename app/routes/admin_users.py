@@ -32,9 +32,8 @@ def create_user():
         # Use AuthService to create user
         new_user = AuthService.create_user(data)
         
-        # Convert datetime to ISO format for JSON response
-        if isinstance(new_user.get("created_at"), datetime):
-            new_user["created_at"] = new_user["created_at"].isoformat()
+        # The database already returns created_at in the proper format
+        # No need to convert it manually
         
         return jsonify({"user": new_user}), 201
 

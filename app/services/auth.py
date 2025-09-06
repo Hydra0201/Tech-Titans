@@ -4,7 +4,7 @@ import datetime
 from typing import Optional, Dict, Any
 from sqlalchemy import text
 from ..db.engine import SessionLocal
-from ..models.user import RoleEnum, AccessLevelEnum  
+from ..models.user import RoleEnum, AccessLevelEnum
 
 import os
 
@@ -91,20 +91,19 @@ class AuthService:
             password_hash = AuthService.hash_password(user_data['password'])
             
             # Create user - matching your actual User model fields
+            # Let the database handle the timestamps since your model uses server_default
             user_insert_data = {
                 'email': user_data['email'],
                 'password_hash': password_hash,
                 'role': role.value,
                 'name': user_data.get('name'),
                 'default_access_level': access_level.value,
-                'created_at': datetime.datetime.utcnow(),
-                'updated_at': datetime.datetime.utcnow()
             }
             
             result = session.execute(
                 text("""
-                    INSERT INTO users (email, password_hash, role, name, default_access_level, created_at, updated_at)
-                    VALUES (:email, :password_hash, :role, :name, :default_access_level, :created_at, :updated_at)
+                    INSERT INTO users (email, password_hash, role, name, default_access_level)
+                    VALUES (:email, :password_hash, :role, :name, :default_access_level)
                     RETURNING id, email, role, name, default_access_level, created_at
                 """),
                 user_insert_data
@@ -208,3 +207,36 @@ class AuthService:
             ).scalar()
             
             return user_role == RoleEnum.Admin.value if user_role else False
+        
+    @staticmethod
+    def verify_token(token: str) -> Optional[Dict[str, Any]]:
+        """Verify JWT token and return payload if valid."""
+        try:
+            if not token:  # Handle None, empty string, etc.
+                return None
+                
+            if token.startswith('Bearer '):
+                token = token[7:]
+                
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            return payload
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, AttributeError):
+            return None
+    
+    @staticmethod
+    def authenticate_user(email: str, password: str) -> Optional[Dict[str, Any]]:
+        """Authenticate user and return user data if successful."""
+        # Check for empty credentials first to avoid database calls
+        if not email or not password:
+            return None
+            
+        with SessionLocal() as session:
+            user = session.execute(
+                text("SELECT * FROM users WHERE email = :email"),
+                {'email': email}
+            ).mappings().first()
+            
+            if not user or not AuthService.verify_password(user['password_hash'], password):
+                return None
+            
+            return dict(user)

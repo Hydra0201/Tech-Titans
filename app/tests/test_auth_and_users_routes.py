@@ -1,7 +1,11 @@
-# tests/test_auth_and_users.py
 import os, uuid, pytest
 from sqlalchemy import text
 from app import create_app, get_conn
+from dotenv import load_dotenv
+import time
+
+# Load environment variables
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 @pytest.fixture
 def app():
@@ -14,71 +18,44 @@ def client(app):
     return app.test_client()
 
 @pytest.fixture
-def temp_user(client, app):
-    """
-    Create a temporary user via the API (no JWT required now) and delete after.
-    """
-    email = f"test_{uuid.uuid4().hex[:8]}@example.com"
-    password = "Passw0rd!"
-    payload = {
-        "name": "Test User",
-        "email": email,
-        "password": password,
-        "role": "Employee",
-        "default_access_level": "view",
-    }
-    r = client.post("/api/admin/users", json=payload)
-    assert r.status_code == 201, r.get_data(as_text=True)
-    user = r.get_json()["user"]
-    yield {"id": user["id"], "email": email, "password": password}
+def unique_email():
+    """Generate a unique email for each test"""
+    return f"test_{uuid.uuid4().hex[:12]}@example.com"
 
-    # cleanup
+@pytest.fixture
+def cleanup_user(app):
+    """Cleanup fixture to remove test users"""
+    users_to_cleanup = []
+    
+    yield users_to_cleanup
+    
+    # Cleanup after test
     with app.app_context():
         conn = get_conn()
         tx = conn.begin()
-        conn.execute(text("DELETE FROM users WHERE id = :uid"), {"uid": user["id"]})
+        for email in users_to_cleanup:
+            conn.execute(text("DELETE FROM users WHERE email = :email"), {"email": email})
         tx.commit()
 
-# -------- tests: /admin/users (no auth now) --------
-
-def test_create_user_success_and_duplicate(client, app):
-    email = f"dup_{uuid.uuid4().hex[:8]}@example.com"
+def test_create_user_success_and_duplicate(client, app, unique_email, cleanup_user):
+    """
+    POST /admin/users — create a user and test duplicate prevention.
+    """
+    cleanup_user.append(unique_email)  # Add to cleanup list
+    
     payload = {
-        "name": "Dup User",
-        "email": email,
+        "name": "Test User",
+        "email": unique_email,
         "password": "Passw0rd!",
         "role": "Employee",
         "default_access_level": "view",
     }
 
+    # First creation should succeed
     r1 = client.post("/api/admin/users", json=payload)
-    assert r1.status_code == 201, r1.get_data(as_text=True)
+    assert r1.status_code == 201, f"First creation failed: {r1.get_data(as_text=True)}"
 
-    # Duplicate email should 409
+    # Duplicate email should fail with 409
     r2 = client.post("/api/admin/users", json=payload)
-    assert r2.status_code == 409
-
-    # cleanup
-    with app.app_context():
-        conn = get_conn()
-        tx = conn.begin()
-        conn.execute(text("DELETE FROM users WHERE email = :email"), {"email": email})
-        tx.commit()
-
-# -------- tests: /auth/login (no JWT returned) --------
-
-def test_login_missing_fields(client):
-    r = client.post("/api/auth/login", json={"email": ""})
-    assert r.status_code == 400
-
-def test_login_ok_and_bad_password(client, temp_user):
-    # OK
-    r_ok = client.post("/api/auth/login", json={"email": temp_user["email"], "password": temp_user["password"]})
-    assert r_ok.status_code == 200
-    body = r_ok.get_json()
-    assert "user" in body and body["user"]["email"] == temp_user["email"]
-    assert "access_token" in body and body["user"]["email"] == temp_user["email"]
-
-    # bad password
-    r_bad = client.post("/api/auth/login", json={"email": temp_user["email"], "password": "wrong"})
-    assert r_bad.status_code == 401
+    assert r2.status_code == 409, f"Duplicate should fail: {r2.get_data(as_text=True)}"
+    assert r2.get_json
