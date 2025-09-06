@@ -37,10 +37,10 @@ def list_themes():
 
 @theme_weights_bp.get("/projects/<int:project_id>/themes")
 @theme_weights_bp.get("/projects/<int:project_id>/theme-scores")  # alias for convenience/tests
-def get_project_theme_scores(project_id: int):
+def get_project_theme_weightings(project_id: int):
     """
     Return ALL themes with any saved scores for this project (LEFT JOIN).
-    raw_weight/normalized_weight are null if not saved.
+    weight_raw/weight_norm are null if not saved.
     """
     conn = get_conn()
 
@@ -57,10 +57,10 @@ def get_project_theme_scores(project_id: int):
             SELECT
                 t.id   AS id,
                 t.name AS name,
-                pts.raw_weight,
-                pts.normalized_weight
+                pts.weight_raw,
+                pts.weight_norm
             FROM themes AS t
-            LEFT JOIN project_theme_scores AS pts
+            LEFT JOIN project_theme_weightings AS pts
               ON pts.theme_id = t.id AND pts.project_id = :pid
             ORDER BY t.id
         """),
@@ -71,8 +71,8 @@ def get_project_theme_scores(project_id: int):
         {
             "id": r["id"],
             "name": r["name"],
-            "raw_weight": float(r["raw_weight"]) if r["raw_weight"] is not None else None,
-            "normalized_weight": float(r["normalized_weight"]) if r["normalized_weight"] is not None else None,
+            "weight_raw": float(r["weight_raw"]) if r["weight_raw"] is not None else None,
+            "weight_norm": float(r["weight_norm"]) if r["weight_norm"] is not None else None,
         }
         for r in rows
     ]
@@ -86,7 +86,7 @@ def get_project_theme_scores(project_id: int):
 # Accept both PUT (preferred) and POST (compat) for a full save
 @theme_weights_bp.put("/projects/<int:project_id>/theme-scores")
 @theme_weights_bp.post("/projects/<int:project_id>/themes")
-def upsert_project_theme_scores(project_id: int):
+def upsert_project_theme_weightings(project_id: int):
     """
     Full-save sliders for a project.
     Body: { "weights": { "<theme_id>": number, ... }, "dry_run"?: bool }
@@ -135,11 +135,11 @@ def upsert_project_theme_scores(project_id: int):
         for tid, raw in parsed.items():
             conn.execute(
                 text("""
-                    INSERT INTO project_theme_scores (project_id, theme_id, raw_weight, normalized_weight)
+                    INSERT INTO project_theme_weightings (project_id, theme_id, weight_raw, weight_norm)
                     VALUES (:pid, :tid, :raw, :norm)
                     ON CONFLICT (project_id, theme_id)
-                    DO UPDATE SET raw_weight = EXCLUDED.raw_weight,
-                                  normalized_weight = EXCLUDED.normalized_weight
+                    DO UPDATE SET weight_raw = EXCLUDED.weight_raw,
+                                  weight_norm = EXCLUDED.weight_norm
                 """),
                 {"pid": project_id, "tid": tid, "raw": raw, "norm": normalized[tid]},
             )

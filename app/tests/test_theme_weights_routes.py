@@ -41,12 +41,12 @@ def _mk_themes(conn, n=3, prefix="Theme"):
 
 def _cleanup(conn, project_id=None, theme_ids=None):
     if project_id:
-        conn.execute(text("""DELETE FROM project_theme_scores WHERE project_id = :pid"""), {"pid": project_id})
+        conn.execute(text("""DELETE FROM project_theme_weightings WHERE project_id = :pid"""), {"pid": project_id})
         conn.execute(text("""DELETE FROM projects WHERE id = :pid"""), {"pid": project_id})
     if theme_ids:
-        # delete any scores referencing these themes first (safety)
+        # delete any weights referencing these themes first (safety)
         conn.execute(
-            text("""DELETE FROM project_theme_scores WHERE theme_id = ANY(:tids)"""),
+            text("""DELETE FROM project_theme_weightings WHERE theme_id = ANY(:tids)"""),
             {"tids": theme_ids},
         )
         conn.execute(
@@ -111,8 +111,8 @@ def test_upsert_theme_scores_dry_run(client, app):
     data = r2.get_json()["themes"]
     # For created themes, raw/normalized should be null
     by_id = {row["id"]: row for row in data if row["id"] in tids}
-    assert all(by_id[t]["raw_weight"] is None for t in tids)
-    assert all(by_id[t]["normalized_weight"] is None for t in tids)
+    assert all(by_id[t]["weight_raw"] is None for t in tids)
+    assert all(by_id[t]["weight_norm"] is None for t in tids)
 
     # cleanup
     with app.app_context():
@@ -154,8 +154,8 @@ def test_upsert_commit_and_fetch_then_overwrite(client, app):
     assert r2.status_code == 200
     themelist = r2.get_json()["themes"]
     m = {row["id"]: row for row in themelist if row["id"] in tids}
-    assert math.isclose(float(m[tids[0]]["normalized_weight"]), 2/3, rel_tol=1e-9)
-    assert math.isclose(float(m[tids[1]]["normalized_weight"]), 1/3, rel_tol=1e-9)
+    assert math.isclose(float(m[tids[0]]["weight_norm"]), 2/3, rel_tol=1e-9)
+    assert math.isclose(float(m[tids[1]]["weight_norm"]), 1/3, rel_tol=1e-9)
 
     # Overwrite with equal weights 1:1 -> 0.5 each (upsert path)
     r3 = client.post(
@@ -172,8 +172,8 @@ def test_upsert_commit_and_fetch_then_overwrite(client, app):
     r4 = client.get(f"/api/projects/{pid}/theme-scores")
     assert r4.status_code == 200
     m2 = {row["id"]: row for row in r4.get_json()["themes"] if row["id"] in tids}
-    assert math.isclose(float(m2[tids[0]]["normalized_weight"]), 0.5, rel_tol=1e-9)
-    assert math.isclose(float(m2[tids[1]]["normalized_weight"]), 0.5, rel_tol=1e-9)
+    assert math.isclose(float(m2[tids[0]]["weight_norm"]), 0.5, rel_tol=1e-9)
+    assert math.isclose(float(m2[tids[1]]["weight_norm"]), 0.5, rel_tol=1e-9)
 
     # cleanup
     with app.app_context():

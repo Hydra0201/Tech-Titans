@@ -24,7 +24,7 @@ def _cleanup(conn, project_id=None):
     if project_id:
         # safety: remove any dependent rows first
         conn.execute(
-            text("DELETE FROM project_theme_scores WHERE project_id = :pid"),
+            text("DELETE FROM project_theme_weightings WHERE project_id = :pid"),
             {"pid": project_id},
         )
         conn.execute(

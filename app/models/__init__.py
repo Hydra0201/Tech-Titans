@@ -12,7 +12,7 @@ before you call create_all().  Usage:
 from .user import User, RoleEnum, AccessLevelEnum
 from .project import Project
 from .theme import Theme
-from .project_theme_score import ProjectThemeScore
+from .project_theme_weightings import ProjectThemeWeighting
 from .intervention import Intervention
 
 # Effects and scoring
@@ -36,7 +36,7 @@ def register_models():
         User,
         Project,
         Theme,
-        ProjectThemeScore,
+        ProjectThemeWeighting,
         Intervention,
         MetricEffect,
         InterventionEffect,
@@ -53,7 +53,7 @@ __all__ = [
     "AccessLevelEnum",
     "Project",
     "Theme",
-    "ProjectThemeScore",
+    "ProjectThemeWeighting",
     "Intervention",
     # effects/scoring
     "MetricEffect",
