@@ -4,16 +4,14 @@ import datetime
 from typing import Optional, Dict, Any
 from sqlalchemy import text
 from ..db.engine import SessionLocal
-from ..schema.user import UserRole
+from ..models.user import RoleEnum, AccessLevelEnum  
 
-from dotenv import load_dotenv
 import os
 
-# Load variables from .env file
-load_dotenv()
-
-# Access the JWT_SECRET
-JWT_SECRET  = os.getenv("JWT_SECRET")
+# Read JWT_SECRET from environment with fallback
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise ValueError("JWT_SECRET environment variable is not set")
 
 JWT_ALGORITHM = "HS256"
 
@@ -55,7 +53,7 @@ class AuthService:
         """Authenticate user and return user data if successful."""
         with SessionLocal() as session:
             user = session.execute(
-                text("SELECT * FROM users WHERE email = :email AND is_active = TRUE"),
+                text("SELECT * FROM users WHERE email = :email"),
                 {'email': email}
             ).mappings().first()
             
@@ -79,27 +77,35 @@ class AuthService:
             
             # Validate role
             try:
-                role = UserRole(user_data['role'])
+                role = RoleEnum(user_data['role'])
             except ValueError:
                 raise ValueError("Invalid role")
+            
+            # Validate access level
+            try:
+                access_level = AccessLevelEnum(user_data.get('default_access_level', 'view'))
+            except ValueError:
+                raise ValueError("Invalid access level")
             
             # Hash password
             password_hash = AuthService.hash_password(user_data['password'])
             
-            # Create user
+            # Create user - matching your actual User model fields
             user_insert_data = {
                 'email': user_data['email'],
                 'password_hash': password_hash,
                 'role': role.value,
                 'name': user_data.get('name'),
-                'is_active': True
+                'default_access_level': access_level.value,
+                'created_at': datetime.datetime.utcnow(),
+                'updated_at': datetime.datetime.utcnow()
             }
             
             result = session.execute(
                 text("""
-                    INSERT INTO users (email, password_hash, role, name, is_active)
-                    VALUES (:email, :password_hash, :role, :name, :is_active)
-                    RETURNING id, email, role, name, is_active, created_at
+                    INSERT INTO users (email, password_hash, role, name, default_access_level, created_at, updated_at)
+                    VALUES (:email, :password_hash, :role, :name, :default_access_level, :created_at, :updated_at)
+                    RETURNING id, email, role, name, default_access_level, created_at
                 """),
                 user_insert_data
             )
@@ -114,7 +120,7 @@ class AuthService:
         with SessionLocal() as session:
             user = session.execute(
                 text("""
-                    SELECT id, email, role, name, is_active, created_at
+                    SELECT id, email, role, name, default_access_level, created_at, updated_at
                     FROM users WHERE id = :user_id
                 """),
                 {'user_id': user_id}
@@ -128,7 +134,7 @@ class AuthService:
         with SessionLocal() as session:
             users = session.execute(
                 text("""
-                    SELECT id, email, role, name, is_active, created_at
+                    SELECT id, email, role, name, default_access_level, created_at, updated_at
                     FROM users ORDER BY created_at DESC
                 """)
             ).mappings().all()
@@ -151,16 +157,24 @@ class AuthService:
             # Validate role if provided
             if 'role' in update_data:
                 try:
-                    UserRole(update_data['role'])
-                    update_data['role'] = update_data['role']  # Keep as string for SQL
+                    RoleEnum(update_data['role'])
+                    update_data['role'] = update_data['role']
                 except ValueError:
                     raise ValueError("Invalid role")
+            
+            # Validate access level if provided
+            if 'default_access_level' in update_data:
+                try:
+                    AccessLevelEnum(update_data['default_access_level'])
+                    update_data['default_access_level'] = update_data['default_access_level']
+                except ValueError:
+                    raise ValueError("Invalid access level")
             
             # Build update query dynamically
             set_clauses = []
             params = {'user_id': user_id}
             
-            for field in ['email', 'name', 'is_active', 'role']:
+            for field in ['email', 'name', 'role', 'default_access_level']:
                 if field in update_data:
                     set_clauses.append(f"{field} = :{field}")
                     params[field] = update_data[field]
@@ -175,7 +189,7 @@ class AuthService:
                     UPDATE users 
                     SET {set_clause}, updated_at = CURRENT_TIMESTAMP
                     WHERE id = :user_id
-                    RETURNING id, email, role, name, is_active, created_at
+                    RETURNING id, email, role, name, default_access_level, created_at, updated_at
                 """),
                 params
             )
@@ -189,8 +203,8 @@ class AuthService:
         """Check if user has admin role."""
         with SessionLocal() as session:
             user_role = session.execute(
-                text("SELECT role FROM users WHERE id = :user_id AND is_active = TRUE"),
+                text("SELECT role FROM users WHERE id = :user_id"),
                 {'user_id': user_id}
             ).scalar()
             
-            return user_role == UserRole.ADMIN.value if user_role else False
+            return user_role == RoleEnum.Admin.value if user_role else False
