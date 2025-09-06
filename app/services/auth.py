@@ -6,7 +6,15 @@ from sqlalchemy import text
 from ..db.engine import SessionLocal
 from ..schema.user import UserRole
 
-JWT_SECRET = "your-secret-key-change-in-production"
+from dotenv import load_dotenv
+import os
+
+# Load variables from .env file
+load_dotenv()
+
+# Access the JWT_SECRET
+JWT_SECRET  = os.getenv("JWT_SECRET")
+
 JWT_ALGORITHM = "HS256"
 
 class AuthService:
