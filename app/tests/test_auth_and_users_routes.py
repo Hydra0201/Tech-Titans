@@ -25,7 +25,7 @@ def temp_user(client, app):
         "email": email,
         "password": password,
         "role": "Employee",
-        "default_access_level": "viewer",
+        "default_access_level": "view",
     }
     r = client.post("/api/admin/users", json=payload)
     assert r.status_code == 201, r.get_data(as_text=True)
@@ -48,7 +48,7 @@ def test_create_user_success_and_duplicate(client, app):
         "email": email,
         "password": "Passw0rd!",
         "role": "Employee",
-        "default_access_level": "viewer",
+        "default_access_level": "view",
     }
 
     r1 = client.post("/api/admin/users", json=payload)
@@ -77,7 +77,7 @@ def test_login_ok_and_bad_password(client, temp_user):
     assert r_ok.status_code == 200
     body = r_ok.get_json()
     assert "user" in body and body["user"]["email"] == temp_user["email"]
-    assert "access_token" not in body  # no JWT in this setup
+    assert "access_token" in body and body["user"]["email"] == temp_user["email"]
 
     # bad password
     r_bad = client.post("/api/auth/login", json={"email": temp_user["email"], "password": "wrong"})

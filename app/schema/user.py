@@ -12,8 +12,8 @@ class RoleEnum(str, Enum):
     Consultant = "Consultant"
 
 class AccessLevelEnum(str, Enum):
-    viewer = "viewer"
-    editor = "editor"
+    view = "view"
+    edit = "edit"
 
 class User(Base):
     __tablename__ = "users"
@@ -32,7 +32,7 @@ class User(Base):
     default_access_level: Mapped[AccessLevelEnum] = mapped_column(
         SAEnum(AccessLevelEnum, name="access_level"),
         nullable=False,
-        default=AccessLevelEnum.viewer,  # client-side default; your route sends it explicitly
+        default=AccessLevelEnum.view,  # client-side default; your route sends it explicitly
     )
 
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
