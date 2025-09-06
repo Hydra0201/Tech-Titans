@@ -25,5 +25,5 @@ def init_db() -> None:
     Call this once (e.g., from scripts/create_db.py).
     """
     # Ensure models are imported before create_all
-    from app.schema import register_models  # noqa: F401
+    from app.models import register_models  # noqa: F401
     Base.metadata.create_all(bind=engine)
