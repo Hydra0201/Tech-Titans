@@ -1,196 +1,228 @@
+# app/services/auth.py
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 from typing import Optional, Dict, Any
 from sqlalchemy import text
 from ..db.engine import SessionLocal
-from ..schema.user import UserRole
-
-from dotenv import load_dotenv
+from ..models.user import RoleEnum, AccessLevelEnum
 import os
+import re
 
-# Load variables from .env file
-load_dotenv()
-
-# Access the JWT_SECRET
-JWT_SECRET  = os.getenv("JWT_SECRET")
-
+# ---- JWT config ----
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise ValueError("JWT_SECRET environment variable is not set")
 JWT_ALGORITHM = "HS256"
 
+# ---- Email validation ----
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$", re.I)
+
+def _norm_email(v: Optional[str]) -> str:
+    return (v or "").strip().lower()
+
+def _assert_valid_email(email: str) -> None:
+    if not EMAIL_RE.fullmatch(email):
+        # normalized, API-friendly message your routes can map to 400
+        raise ValueError("invalid_email")
+
 class AuthService:
+    # ---------- password helpers ----------
     @staticmethod
     def hash_password(password: str) -> str:
-        """Hash a password for storing."""
         return generate_password_hash(password)
-    
+
     @staticmethod
     def verify_password(hashed_password: str, password: str) -> bool:
-        """Verify a stored password against one provided by user."""
         return check_password_hash(hashed_password, password)
-    
+
+    # ---------- JWT helpers ----------
     @staticmethod
     def generate_token(user_id: int, email: str, role: str) -> str:
-        """Generate JWT token for authenticated user."""
         payload = {
-            'user_id': user_id,
-            'email': email,
-            'role': role,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+            "user_id": user_id,
+            "email": email,
+            "role": role,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24),
         }
         return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-    
+
     @staticmethod
     def verify_token(token: str) -> Optional[Dict[str, Any]]:
         """Verify JWT token and return payload if valid."""
         try:
-            if token.startswith('Bearer '):
+            if not token:
+                return None
+            if token.startswith("Bearer "):
                 token = token[7:]
-            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            return payload
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, AttributeError):
             return None
-    
+
+    # ---------- user flows ----------
     @staticmethod
     def authenticate_user(email: str, password: str) -> Optional[Dict[str, Any]]:
         """Authenticate user and return user data if successful."""
+        if not email or not password:
+            return None
+        email = _norm_email(email)
+        if not EMAIL_RE.fullmatch(email):
+            return None
+
         with SessionLocal() as session:
-            user = session.execute(
-                text("SELECT * FROM users WHERE email = :email AND is_active = TRUE"),
-                {'email': email}
+            row = session.execute(
+                text("SELECT * FROM users WHERE email = :email"),
+                {"email": email},
             ).mappings().first()
-            
-            if not user or not AuthService.verify_password(user['password_hash'], password):
+
+            if not row or not AuthService.verify_password(row["password_hash"], password):
                 return None
-            
-            return dict(user)
-    
+
+            return dict(row)
+
     @staticmethod
     def create_user(user_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new user account (admin only)."""
         with SessionLocal() as session:
-            # Check if user already exists
+            email = _norm_email(user_data.get("email"))
+            _assert_valid_email(email)
+
+            # duplicate email?
             existing_user = session.execute(
                 text("SELECT id FROM users WHERE email = :email"),
-                {'email': user_data['email']}
+                {"email": email},
             ).scalar()
-            
             if existing_user:
-                raise ValueError("User already exists")
-            
-            # Validate role
+                # API-friendly message your routes can map to 409
+                raise ValueError("email_exists")
+
+            # validate role
             try:
-                role = UserRole(user_data['role'])
-            except ValueError:
-                raise ValueError("Invalid role")
-            
-            # Hash password
-            password_hash = AuthService.hash_password(user_data['password'])
-            
-            # Create user
-            user_insert_data = {
-                'email': user_data['email'],
-                'password_hash': password_hash,
-                'role': role.value,
-                'name': user_data.get('name'),
-                'is_active': True
-            }
-            
+                role = RoleEnum(user_data["role"])
+            except Exception:
+                raise ValueError("invalid_role")
+
+            # validate access level
+            try:
+                access_level = AccessLevelEnum(
+                    user_data.get("default_access_level", "view")
+                )
+            except Exception:
+                raise ValueError("invalid_access_level")
+
+            password = user_data.get("password") or ""
+            if not password:
+                raise ValueError("invalid_password")
+
+            password_hash = AuthService.hash_password(password)
+
             result = session.execute(
-                text("""
-                    INSERT INTO users (email, password_hash, role, name, is_active)
-                    VALUES (:email, :password_hash, :role, :name, :is_active)
-                    RETURNING id, email, role, name, is_active, created_at
-                """),
-                user_insert_data
+                text(
+                    """
+                    INSERT INTO users (email, password_hash, role, name, default_access_level)
+                    VALUES (:email, :password_hash, :role, :name, :default_access_level)
+                    RETURNING id, email, role, name, default_access_level, created_at
+                    """
+                ),
+                {
+                    "email": email,
+                    "password_hash": password_hash,
+                    "role": role.value,
+                    "name": user_data.get("name"),
+                    "default_access_level": access_level.value,
+                },
             )
             new_user = result.mappings().first()
             session.commit()
-            
             return dict(new_user)
-    
+
     @staticmethod
     def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
-        """Get user by ID."""
         with SessionLocal() as session:
-            user = session.execute(
-                text("""
-                    SELECT id, email, role, name, is_active, created_at
-                    FROM users WHERE id = :user_id
-                """),
-                {'user_id': user_id}
+            row = session.execute(
+                text(
+                    """
+                    SELECT id, email, role, name, default_access_level, created_at, updated_at
+                    FROM users
+                    WHERE id = :user_id
+                    """
+                ),
+                {"user_id": user_id},
             ).mappings().first()
-            
-            return dict(user) if user else None
-    
+            return dict(row) if row else None
+
     @staticmethod
     def get_all_users() -> list:
-        """Get all users (admin only)."""
         with SessionLocal() as session:
-            users = session.execute(
-                text("""
-                    SELECT id, email, role, name, is_active, created_at
-                    FROM users ORDER BY created_at DESC
-                """)
+            rows = session.execute(
+                text(
+                    """
+                    SELECT id, email, role, name, default_access_level, created_at, updated_at
+                    FROM users
+                    ORDER BY created_at DESC
+                    """
+                )
             ).mappings().all()
-            
-            return [dict(user) for user in users]
-    
+            return [dict(r) for r in rows]
+
     @staticmethod
     def update_user(user_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Update user information (admin only)."""
         with SessionLocal() as session:
-            # Check if user exists
-            existing_user = session.execute(
-                text("SELECT id FROM users WHERE id = :user_id"),
-                {'user_id': user_id}
+            exists = session.execute(
+                text("SELECT 1 FROM users WHERE id = :id"),
+                {"id": user_id},
             ).scalar()
-            
-            if not existing_user:
+            if not exists:
                 return None
-            
-            # Validate role if provided
-            if 'role' in update_data:
+
+            # normalize + validate fields
+            params: Dict[str, Any] = {"user_id": user_id}
+            sets = []
+
+            if "email" in update_data:
+                email = _norm_email(update_data["email"])
+                _assert_valid_email(email)
+                sets.append("email = :email")
+                params["email"] = email
+
+            if "name" in update_data:
+                sets.append("name = :name")
+                params["name"] = update_data["name"]
+
+            if "role" in update_data:
                 try:
-                    UserRole(update_data['role'])
-                    update_data['role'] = update_data['role']  # Keep as string for SQL
-                except ValueError:
-                    raise ValueError("Invalid role")
-            
-            # Build update query dynamically
-            set_clauses = []
-            params = {'user_id': user_id}
-            
-            for field in ['email', 'name', 'is_active', 'role']:
-                if field in update_data:
-                    set_clauses.append(f"{field} = :{field}")
-                    params[field] = update_data[field]
-            
-            if not set_clauses:
-                raise ValueError("No fields to update")
-            
-            set_clause = ", ".join(set_clauses)
-            
-            result = session.execute(
-                text(f"""
-                    UPDATE users 
-                    SET {set_clause}, updated_at = CURRENT_TIMESTAMP
-                    WHERE id = :user_id
-                    RETURNING id, email, role, name, is_active, created_at
-                """),
-                params
-            )
-            updated_user = result.mappings().first()
+                    RoleEnum(update_data["role"])
+                except Exception:
+                    raise ValueError("invalid_role")
+                sets.append("role = :role")
+                params["role"] = update_data["role"]
+
+            if "default_access_level" in update_data:
+                try:
+                    AccessLevelEnum(update_data["default_access_level"])
+                except Exception:
+                    raise ValueError("invalid_access_level")
+                sets.append("default_access_level = :default_access_level")
+                params["default_access_level"] = update_data["default_access_level"]
+
+            if not sets:
+                raise ValueError("no_fields_to_update")
+
+            q = f"""
+                UPDATE users
+                SET {", ".join(sets)}, updated_at = CURRENT_TIMESTAMP
+                WHERE id = :user_id
+                RETURNING id, email, role, name, default_access_level, created_at, updated_at
+            """
+            res = session.execute(text(q), params).mappings().first()
             session.commit()
-            
-            return dict(updated_user) if updated_user else None
-    
+            return dict(res) if res else None
+
     @staticmethod
     def is_admin(user_id: int) -> bool:
-        """Check if user has admin role."""
         with SessionLocal() as session:
-            user_role = session.execute(
-                text("SELECT role FROM users WHERE id = :user_id AND is_active = TRUE"),
-                {'user_id': user_id}
+            role = session.execute(
+                text("SELECT role FROM users WHERE id = :id"),
+                {"id": user_id},
             ).scalar()
-            
-            return user_role == UserRole.ADMIN.value if user_role else False
+            return role == RoleEnum.Admin.value if role else False

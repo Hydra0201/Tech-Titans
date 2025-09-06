@@ -5,6 +5,8 @@ from app import create_app, get_conn
 
 @pytest.fixture
 def app():
+    os.environ.setdefault("JWT_SECRET", "test-secret")        # <- add
+    os.environ.setdefault("JWT_EXPIRES_HOURS", "1")           # <- optional, keeps tokens short-lived in tests
     app = create_app()
     app.config.update(TESTING=True)
     return app
@@ -71,6 +73,19 @@ def test_login_missing_fields(client):
     r = client.post("/api/auth/login", json={"email": ""})
     assert r.status_code == 400
 
+def test_create_user_invalid_email(client):
+    payload = {
+        "name": "Bad Email",
+        "email": "not-an-email",
+        "password": "Passw0rd!",
+        "role": "Employee",
+        "default_access_level": "view",
+    }
+    r = client.post("/api/admin/users", json=payload)
+    assert r.status_code == 400
+    assert r.get_json()["error"] == "invalid_email"
+
+    
 def test_login_ok_and_bad_password(client, temp_user):
     # OK
     r_ok = client.post("/api/auth/login", json={"email": temp_user["email"], "password": temp_user["password"]})
@@ -82,3 +97,5 @@ def test_login_ok_and_bad_password(client, temp_user):
     # bad password
     r_bad = client.post("/api/auth/login", json={"email": temp_user["email"], "password": "wrong"})
     assert r_bad.status_code == 401
+
+

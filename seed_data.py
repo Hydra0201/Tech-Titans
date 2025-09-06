@@ -1,7 +1,7 @@
 import json
-from app.models.themes import Theme 
-from app.models.interventions import Intervention
-from app.core.database import SessionLocal  
+from app.models.theme import Theme 
+from app.models.intervention import Intervention
+from app.db import SessionLocal  
 
 def load_json(filename):
     with open(filename, 'r') as f:
