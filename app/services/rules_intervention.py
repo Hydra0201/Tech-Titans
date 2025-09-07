@@ -1,6 +1,6 @@
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
-from .types import InterventionRule, in_bounds
+from .types import InterventionRule
 from typing import List, Dict
 
 def fetch_intervention_rules(conn: Connection) -> List[InterventionRule]:

@@ -94,3 +94,21 @@ def get_projects(user_id: int):
     {"user_id": user_id},
     ).scalar_one()
     return {"projects": rows}, 200
+
+
+@metrics_bp.post("/projects")
+def create_project():
+    payload = request.get_json(silent=True) or {}
+    name = (payload.get("name") or "Untitled").strip()
+
+    conn = get_conn()
+    row = conn.execute(
+        text("""
+            INSERT INTO projects (name)
+            VALUES (:name)
+            RETURNING id
+        """),
+        {"name": name},
+    ).mappings().one()
+    return {"id": row["id"], "name": name}
+
