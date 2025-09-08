@@ -60,8 +60,8 @@ def _row_to_dict(row) -> dict:
 
 # --- routes --------------------------------------------------
 
-@projects_bp.post("/projects")
-def create_project():
+@projects_bp.post("/projects/<int:user_id>")
+def create_project(user_id: int):
     data = request.get_json(silent=True) or {}
     name = str(data.get("name") or "").strip()
     if not name:
@@ -70,6 +70,7 @@ def create_project():
     # coerce optional fields
     fields = _coerce_payload(data)
     fields["name"] = name
+    fields["owner_user_id"] = user_id
 
     # build insert
     cols = ", ".join(fields.keys())
@@ -80,11 +81,7 @@ def create_project():
         INSERT INTO projects ({cols})
         VALUES ({vals})
         RETURNING
-          id, name, status, project_type, building_type, location,
-          levels, external_wall_area, footprint_area, opening_pct,
-          wall_to_floor_ratio, footprint_gifa, gifa_total,
-          external_openings_area, avg_height_per_level,
-          created_at, updated_at
+          id, name
     """
 
     conn = get_conn()
