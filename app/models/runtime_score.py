@@ -12,7 +12,6 @@ class RuntimeScore(Base):
         Integer, ForeignKey("interventions.id", ondelete="CASCADE"), primary_key=True
     )
 
-    # 0..1 domain if you clamp in code
     adjusted_base_effectiveness: Mapped[float | None] = mapped_column(Numeric, nullable=True)
     theme_weighted_effectiveness: Mapped[float | None] = mapped_column(Numeric, nullable=True)
     rank: Mapped[int | None] = mapped_column(Integer, nullable=True)

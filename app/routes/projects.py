@@ -1,9 +1,11 @@
 # app/routes/projects.py
 from __future__ import annotations
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
+import jwt
 from sqlalchemy import text
 from .. import get_conn
+from ..services import rules_metric  # <--- NEW: used for optional post-create recompute
 
 projects_bp = Blueprint("projects", __name__)
 
@@ -40,28 +42,35 @@ def _coerce_payload(data: dict) -> dict:
             try:
                 out[k] = caster(data[k])
             except Exception:
-                # ignore bad cast; let DB stay unchanged on PATCH or omit on POST
                 pass
     return out
 
 def _row_to_dict(row) -> dict:
     d = dict(row)
-    # json-safe datetimes & decimals
     if isinstance(d.get("created_at"), datetime):
         d["created_at"] = d["created_at"].isoformat()
     if isinstance(d.get("updated_at"), datetime):
         d["updated_at"] = d["updated_at"].isoformat()
-
-    # Cast Numeric -> float for known numeric fields
     for k in _NUM_FIELDS:
         if d.get(k) is not None:
             d[k] = float(d[k])
     return d
 
 # --- routes --------------------------------------------------
+@projects_bp.post("/projects")
+def create_project():
+    # --- inline JWT owner extraction ---
+    auth = request.headers.get("Authorization", "")
+    if not auth or not auth.lower().startswith("bearer "):
+        return {"error": "unauthorized"}, 401
+    token = auth.split(None, 1)[1]
+    try:
+        payload = jwt.decode(token, current_app.config["JWT_SECRET"], algorithms=["HS256"])
+        owner_user_id = int(payload.get("sub"))
+    except Exception:
+        return {"error": "unauthorized"}, 401
+    # -----------------------------------
 
-@projects_bp.post("/projects/<int:user_id>")
-def create_project(user_id: int):
     data = request.get_json(silent=True) or {}
     name = str(data.get("name") or "").strip()
     if not name:
@@ -70,18 +79,21 @@ def create_project(user_id: int):
     # coerce optional fields
     fields = _coerce_payload(data)
     fields["name"] = name
-    fields["owner_user_id"] = user_id
+    fields["owner_user_id"] = owner_user_id  # set owner
 
-    # build insert
     cols = ", ".join(fields.keys())
-    params = {k: fields[k] for k in fields}
     vals = ", ".join(f":{k}" for k in fields)
+    params = {k: fields[k] for k in fields}
 
     sql = f"""
         INSERT INTO projects ({cols})
         VALUES ({vals})
         RETURNING
-          id, name
+          id, name, status, project_type, building_type, location,
+          levels, external_wall_area, footprint_area, opening_pct,
+          wall_to_floor_ratio, footprint_gifa, gifa_total,
+          external_openings_area, avg_height_per_level,
+          owner_user_id, created_at, updated_at
     """
 
     conn = get_conn()
@@ -89,9 +101,31 @@ def create_project(user_id: int):
     try:
         row = conn.execute(text(sql), params).mappings().one()
         tx.commit()
+
+        # OPTIONAL BUT HELPFUL: if numeric fields were provided at create-time,
+        # run the scoring pipeline immediately so runtime_scores is populated
+        project_id = int(row["id"])
+        metrics_in_body = {
+            k: fields[k] for k in _NUM_FIELDS.keys()
+            if k in fields and fields[k] is not None
+        }
+        if metrics_in_body:
+            conn2 = get_conn()
+            tx2 = conn2.begin() if not conn2.in_transaction() else conn2.begin_nested()
+            try:
+                rules_metric.save_project_metrics(conn2, project_id, metrics_in_body)
+                scores = rules_metric.metric_recompute(conn2, project_id)
+                rules_metric.upsert_runtime_scores(conn2, project_id, scores)
+                tx2.commit()
+            except Exception:
+                if tx2.is_active:
+                    tx2.rollback()
+                current_app.logger.exception("post-create recompute failed")
+
         return jsonify({"project": _row_to_dict(row)}), 201
     except Exception:
-        if tx.is_active: tx.rollback()
+        if tx.is_active:
+            tx.rollback()
         return {"error": "server_error"}, 500
 
 
@@ -121,8 +155,6 @@ def get_project(project_id: int):
 def patch_project(project_id: int):
     data = request.get_json(silent=True) or {}
     updates = _coerce_payload(data)
-
-    # keep only allowed fields
     updates = {k: v for k, v in updates.items() if k in _ALLOWED_PATCH_FIELDS}
     if not updates:
         return {"error": "bad_request", "message": "no valid fields"}, 400

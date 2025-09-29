@@ -23,22 +23,24 @@ def send_metrics(project_id: int):
 
     dry_run = parse_bool(request.args.get("dry_run"))
 
-    metrics_raw = payload.get("metrics")
+    # ACCEPT BOTH SHAPES: {metrics:{...}} OR RAW {...}
+    metrics_raw = payload.get("metrics") if "metrics" in payload else payload
     if not isinstance(metrics_raw, dict) or not metrics_raw:
-        return {"error": "bad_request", "message": "missing 'metrics' dict"}, 400
+        return {"error": "bad_request", "message": "missing metrics"}, 400
 
     try:
-        metrics = {str(k): float(v) for k, v in metrics_raw.items()}
+        metrics = {str(k): float(v) for k, v in metrics_raw.items() if v is not None}
     except Exception:
         return {
             "error": "bad_request",
-            "message": "metrics must be numeric mapping: {metric_name: number}",
+            "message": "metrics values must be numbers"
         }, 400
 
     conn = get_conn()
     # safe if a transaction is already active (e.g., in tests)
     tx = conn.begin() if not conn.in_transaction() else conn.begin_nested()
     try:
+        # write metrics -> recompute -> upsert scores
         rules_metric.save_project_metrics(conn, project_id, metrics)
         scores = rules_metric.metric_recompute(conn, project_id)
         rules_metric.upsert_runtime_scores(conn, project_id, scores)
@@ -48,7 +50,16 @@ def send_metrics(project_id: int):
         else:
             tx.commit()
 
-        return {"updated": len(scores), "dry_run": dry_run}, 200
+        # tiny debug signal in logs (remove if noisy)
+        try:
+            base_count = conn.execute(text("SELECT COUNT(*) FROM interventions")).scalar_one()
+            rule_count = conn.execute(text("SELECT COUNT(*) FROM metric_effects")).scalar_one()
+            current_app.logger.info("metrics recompute: interventions=%s rules=%s updated=%s",
+                                    base_count, rule_count, len(scores))
+        except Exception:
+            pass
+
+        return {"project_id": project_id, "updated": len(scores), "dry_run": dry_run}, 200
     except Exception:
         if tx.is_active:
             tx.rollback()
@@ -99,7 +110,7 @@ def list_user_projects(user_id: int):
     data = _fetch_user_projects(conn, user_id)
     return {"projects": data}, 200
 
-# Optional: keep a compatibility alias without name collision
+# Optional compatibility alias
 @metrics_bp.get("/projects/user/<int:user_id>")
 def list_user_projects_compat(user_id: int):
     conn = get_conn()

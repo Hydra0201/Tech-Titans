@@ -2,9 +2,10 @@
 from __future__ import annotations
 from flask import Blueprint, request, jsonify, current_app
 from sqlalchemy import text
+from ..services.weightings import apply_weights
 from .. import get_conn
 
-theme_weights_bp = Blueprint("theme_weights", __name__)
+theme_weights_bp = Blueprint("theme_weights", __name__, url_prefix="/api")
 
 # --- helpers ---------------------------------------------------------------
 
@@ -93,6 +94,7 @@ def upsert_project_theme_weightings(project_id: int):
     """
     payload = request.get_json(silent=True) or {}
     weights_raw = payload.get("weights")
+
     if not isinstance(weights_raw, dict) or not weights_raw:
         return {"error": "bad_request", "message": "missing 'weights' mapping"}, 400
 
@@ -113,41 +115,31 @@ def upsert_project_theme_weightings(project_id: int):
     dry_run = _parse_bool(request.args.get("dry_run")) or bool(payload.get("dry_run"))
 
     conn = get_conn()
-
-    # Open ONE root transaction BEFORE any SELECT to avoid autobegin + nested savepoint
     tx = conn.begin()
     try:
-        # Optional RBAC gate (leave as-is if not enforced)
-        if not _require_editor_access(conn, project_id):
-            tx.rollback()
-            return {"error": "forbidden"}, 403
-
-        # Ensure project exists inside this tx
-        proj = conn.execute(
-            text("SELECT 1 FROM projects WHERE id = :pid"),
-            {"pid": project_id},
-        ).scalar_one_or_none()
-        if proj is None:
+        # (Optional) ensure project exists
+        exists = conn.execute(text("SELECT 1 FROM projects WHERE id = :pid"), {"pid": project_id}).scalar_one_or_none()
+        if exists is None:
             tx.rollback()
             return {"error": "not_found", "message": "project not found"}, 404
 
         # Upsert weights
         for tid, raw in parsed.items():
-            conn.execute(
-                text("""
-                    INSERT INTO project_theme_weightings (project_id, theme_id, weight_raw, weight_norm)
-                    VALUES (:pid, :tid, :raw, :norm)
-                    ON CONFLICT (project_id, theme_id)
-                    DO UPDATE SET weight_raw = EXCLUDED.weight_raw,
-                                  weight_norm = EXCLUDED.weight_norm
-                """),
-                {"pid": project_id, "tid": tid, "raw": raw, "norm": normalized[tid]},
-            )
+            conn.execute(text("""
+                INSERT INTO project_theme_weightings (project_id, theme_id, weight_raw, weight_norm)
+                VALUES (:pid, :tid, :raw, :norm)
+                ON CONFLICT (project_id, theme_id)
+                DO UPDATE SET weight_raw = EXCLUDED.weight_raw,
+                              weight_norm = EXCLUDED.weight_norm
+            """), {"pid": project_id, "tid": tid, "raw": raw, "norm": normalized[tid]})
 
         if dry_run:
-            tx.rollback()  # throw away all changes in this request
+            tx.rollback()
+            updated_scores = 0
         else:
             tx.commit()
+            # Apply weights so theme_weighted_effectiveness is fresh
+            updated_scores = apply_weights(project_id, conn)
 
         return jsonify({
             "project_id": project_id,
@@ -156,9 +148,11 @@ def upsert_project_theme_weightings(project_id: int):
             "sum_raw": float(total),
             "sum_norm": float(sum(normalized.values())),
             "normalized": {tid: float(v) for tid, v in normalized.items()},
+            "scores_weighted_updated": int(updated_scores),
         }), 200
 
     except Exception:
         if tx.is_active:
             tx.rollback()
+        current_app.logger.exception("theme weight upsert failed")
         return {"error": "server_error"}, 500

@@ -19,10 +19,9 @@ class ProjectThemeWeighting(Base):
         nullable=False,
     )
 
-    # friend asked for float columns named exactly like this:
     weight_raw: Mapped[float]  = mapped_column(Float, nullable=False)
     weight_norm: Mapped[float] = mapped_column(Float, nullable=False)
-
+    
     __table_args__ = (
         UniqueConstraint("project_id", "theme_id", name="uq_ptw_proj_theme"),
     )

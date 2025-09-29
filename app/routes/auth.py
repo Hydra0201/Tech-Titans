@@ -70,11 +70,11 @@ def login():
     exp = now + timedelta(hours=int(current_app.config.get("JWT_EXPIRES_HOURS", 24)))
 
     token = _jwt_encode({
-        "sub": row["id"],
-        "email": row["email"],
-        "role": row["role"],
-        "iat": int(now.timestamp()),
-        "exp": int(exp.timestamp()),
+    "sub": str(row["id"]),   # 🔑 store as string
+    "email": row["email"],
+    "role": row["role"],
+    "iat": int(now.timestamp()),
+    "exp": int(exp.timestamp()),
     })
 
     user = {

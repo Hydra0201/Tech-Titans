@@ -1,34 +1,72 @@
-from flask import Blueprint, request, current_app
+# app/routes/interventions.py
+from __future__ import annotations
+from flask import Blueprint, request, jsonify, current_app
 from sqlalchemy import text
 from .. import get_conn
 from ..services.rules_intervention import intervention_recompute
 
-interventions_bp = Blueprint('interventions', __name__)
+interventions_bp = Blueprint("interventions", __name__)
 
-@interventions_bp.route('/hello', methods=['GET']) # DB Test
+# --- helpers ---------------------------------------------------------------
+
+def _parse_bool(v: str | None) -> bool:
+    return bool(v) and v.strip().lower() in {"1", "true", "t", "yes", "y", "on"}
+
+def _project_exists(conn, project_id: int) -> bool:
+    return conn.execute(text("SELECT 1 FROM projects WHERE id = :pid"), {"pid": project_id}).scalar_one_or_none() is not None
+
+def _intervention_exists(conn, intervention_id: int) -> bool:
+    return conn.execute(text("SELECT 1 FROM interventions WHERE id = :iid"), {"iid": intervention_id}).scalar_one_or_none() is not None
+
+# --- routes ----------------------------------------------------------------
+
+@interventions_bp.get("/hello")
 def get_health():
+    """Lightweight DB connectivity check."""
     conn = get_conn()
     row = conn.execute(text("SELECT 1 AS ok")).one()
     return {"ok": row.ok}, 200
 
-
-
-@interventions_bp.route('/projects/<int:project_id>/apply', methods=['POST'])
+@interventions_bp.post("/projects/<int:project_id>/apply")
 def apply_intervention(project_id: int):
-    payload = request.get_json(silent=True) or {}
-    try:
-        cause_id = int(payload["intervention_id"])
-    except Exception:
-        return {"error": "intervention_id (int) is required"}, 400
+    """
+    Body: { "intervention_id": <int> }
+    Query: ?dry_run=1 to preview without saving
 
-    dry_run = (request.args.get("dry_run","").lower() in {"1","true","yes","on"})
+    Applies all dependency rules where this intervention is the cause and
+    upserts new runtime scores for affected interventions.
+    """
+    data = request.get_json(silent=True) or {}
+    try:
+        cause_id = int(data.get("intervention_id"))
+    except Exception:
+        return {"error": "bad_request", "message": "intervention_id (int) is required"}, 400
+
+    dry_run = _parse_bool(request.args.get("dry_run"))
     conn = get_conn()
+
+    # Pre-checks
+    if not _project_exists(conn, project_id):
+        return {"error": "not_found", "message": "project not found"}, 404
+    if not _intervention_exists(conn, cause_id):
+        return {"error": "not_found", "message": "intervention not found"}, 404
+
     tx = conn.begin()
     try:
-        out = intervention_recompute(conn, project_id, cause_id)
-        tx.rollback() if dry_run else tx.commit()
-        return {"updated": len(out), "new_scores": out, "dry_run": dry_run}, 200
+        new_scores = intervention_recompute(conn, project_id, cause_id)
+        if dry_run:
+            tx.rollback()
+        else:
+            tx.commit()
+        return jsonify({
+            "project_id": project_id,
+            "cause_intervention_id": cause_id,
+            "updated": len(new_scores),
+            "new_scores": {int(k): float(v) for k, v in new_scores.items()},
+            "dry_run": dry_run,
+        }), 200
     except Exception:
-        tx.rollback()
-        current_app.logger.exception("apply_one failed")
-        return {"error": "apply_one failed"}, 500
+        if tx.is_active:
+            tx.rollback()
+        current_app.logger.exception("apply_intervention failed")
+        return {"error": "server_error"}, 500
