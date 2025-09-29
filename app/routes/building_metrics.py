@@ -1,8 +1,8 @@
-# app/routes/building_metrics.py
 from flask import Blueprint, request, jsonify, current_app
 from sqlalchemy import text
 from .. import get_conn
-from ..services import rules_metric
+from ..services import rules_metric, stages
+
 
 metrics_bp = Blueprint("metrics", __name__)
 
@@ -59,19 +59,13 @@ def send_metrics(project_id: int):
 # ---------- Top 3 recommendations ----------
 @metrics_bp.get("/projects/<int:project_id>/recommendations")
 def get_recommendations(project_id: int):
-    conn = get_conn()
-    rows = conn.execute(
-        text("""
-            SELECT r.intervention_id, i.name, r.adjusted_base_effectiveness
-            FROM runtime_scores AS r
-            JOIN interventions AS i ON i.id = r.intervention_id
-            WHERE r.project_id = :pid
-            ORDER BY r.adjusted_base_effectiveness DESC
-            LIMIT 3
-        """),
-        {"pid": project_id},
-    ).mappings().all()
-    return {"recommendations": [dict(r) for r in rows]}, 200
+    with get_conn() as conn:
+        try:
+            rows = get_recommendations(conn, project_id, limit=3)
+            return jsonify({"recommendations": [dict(r) for r in rows]}), 200
+        except Exception:
+            return({"failed to get recommendations"}), 500
+    
 
 
 # ---------- List a user's projects ----------
