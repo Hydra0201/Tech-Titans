@@ -72,7 +72,7 @@ def send_metrics(project_id: int):
 def get_recommendations(project_id: int):
     with get_conn() as conn:
         try:
-            rows = get_recommendations(conn, project_id, limit=3)
+            rows = stages.recommendations(conn, project_id, limit=3)
             return jsonify({"recommendations": [dict(r) for r in rows]}), 200
         except Exception:
             return({"failed to get recommendations"}), 500
