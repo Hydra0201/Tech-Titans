@@ -1,7 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
 
-def get_recommendations(conn: Connection, project_id: int, limit: int = 3) -> List[Mapping[str, Any]]:
+def recommendations(conn: Connection, project_id: int, limit: int = 3) -> List[Mapping[str, Any]]:
     """
     Return top-N eligible recommendations for a project, filtered by stage rules (mutex/prereq).
     Each row has: intervention_id, name, adjusted_base_effectiveness.
