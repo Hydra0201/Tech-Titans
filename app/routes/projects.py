@@ -6,6 +6,8 @@ import jwt
 from sqlalchemy import text
 from .. import get_conn
 from ..services import rules_metric  # <--- NEW: used for optional post-create recompute
+from ..services.stages import recommendations as stage_recs
+
 
 projects_bp = Blueprint("projects", __name__)
 
@@ -210,3 +212,5 @@ def delete_project(project_id: int):
     except Exception:
         if tx.is_active: tx.rollback()
         return {"error": "server_error"}, 500
+    
+

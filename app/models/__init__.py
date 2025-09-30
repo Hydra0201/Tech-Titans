@@ -1,37 +1,30 @@
 # carbonbalance/models/__init__.py
-"""
-Import and register all SQLAlchemy models so Base.metadata knows about them
-before you call create_all().  Usage:
-
-    from carbonbalance.models import register_models
-    ...
-    Base.metadata.create_all(bind=engine)
-"""
 
 # Core entities
 from .user import User, RoleEnum, AccessLevelEnum
 from .project import Project
 from .theme import Theme
-from .project_theme_weightings import ProjectThemeWeighting
+from .project_theme_weightings import ProjectThemeWeighting  
 from .intervention import Intervention
 
 # Effects and scoring
 from .metric_effect import MetricEffect, MetricTypeEnum
 from .intervention_effect import InterventionEffect
-from .runtime_score import RuntimeScore  # stores adjusted/theme-weighted values
+from .runtime_score import RuntimeScore
 
-# Recommendations (single-table design with batch id)
+# Recommendations (snapshot table)
 from .recommendation import Recommendation
 
 # RBAC per project
 from .project_access import ProjectAccess
 
+# NEW — stages, implemented, app config
+from .stages import Stage, RelationTypeEnum
+from .implemented_intervention import ImplementedIntervention
+from .app_config import AppConfig
+
 
 def register_models():
-    """
-    Return a list of model classes; importing this module is enough for metadata,
-    but some apps like to call this explicitly before create_all().
-    """
     return [
         User,
         Project,
@@ -43,27 +36,24 @@ def register_models():
         RuntimeScore,
         Recommendation,
         ProjectAccess,
+        Stage,
+        ImplementedIntervention,
+        AppConfig,
     ]
 
-
 __all__ = [
-    # entities
-    "User",
-    "RoleEnum",
-    "AccessLevelEnum",
+    "User", "RoleEnum", "AccessLevelEnum",
     "Project",
     "Theme",
     "ProjectThemeWeighting",
     "Intervention",
-    # effects/scoring
-    "MetricEffect",
-    "MetricTypeEnum",
+    "MetricEffect", "MetricTypeEnum",
     "InterventionEffect",
     "RuntimeScore",
-    # recommendations
     "Recommendation",
-    # rbac
     "ProjectAccess",
-    # helper
+    "Stage", "RelationTypeEnum",
+    "ImplementedIntervention",
+    "AppConfig",
     "register_models",
 ]
