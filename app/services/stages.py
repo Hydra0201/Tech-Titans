@@ -1,5 +1,7 @@
-from sqlalchemy import text
+
 from sqlalchemy.engine import Connection
+from sqlalchemy import text
+from typing import List, Mapping, Any
 
 def get_recommendations(conn: Connection, project_id: int, limit: int = 3) -> List[Mapping[str, Any]]:
     """
