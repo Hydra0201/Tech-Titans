@@ -39,11 +39,6 @@ def fetch_intervention_rules(conn: Connection) -> List[InterventionRule]:
     return out    
 
 
-
-from typing import Dict, List
-from sqlalchemy import text
-from sqlalchemy.engine import Connection
-
 def intervention_recompute(
     conn: Connection,
     project_id: int,
