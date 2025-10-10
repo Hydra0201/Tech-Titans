@@ -1,4 +1,6 @@
 
+from typing import Any, List, Mapping
+from sqlalchemy import text
 from sqlalchemy.engine import Connection
 from sqlalchemy import text
 from typing import List, Mapping, Any
@@ -14,6 +16,11 @@ def recommendations(conn: Connection, project_id: int, limit: int = 3) -> List[M
             FROM runtime_scores r
             JOIN interventions i ON i.id = r.intervention_id
             WHERE r.project_id = :pid
+              AND NOT EXISTS (
+                SELECT 1 FROM implemented_interventions ii
+                WHERE ii.project_id = :pid
+                  AND ii.impl_id = r.intervention_id
+              )
               AND (
                     COALESCE(i.is_stage, FALSE) = FALSE
                     OR (

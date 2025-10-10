@@ -54,6 +54,23 @@ def apply_intervention(project_id: int):
     tx = conn.begin()
     try:
         new_scores = intervention_recompute(conn, project_id, cause_id)
+
+        inserted = 0
+        if not dry_run:
+            # Records that an intervention has been implemented
+            res = conn.execute(
+                text("""
+                    INSERT INTO implemented_interventions (project_id, impl_id)
+                    VALUES (:pid, :iid)
+                    ON CONFLICT (project_id, impl_id) DO NOTHING
+                    RETURNING 1
+                """),
+                {"pid": project_id, "iid": cause_id},
+            )
+            inserted = res.rowcount or 0
+
+        # Recompute effects
+        new_scores = intervention_recompute(conn, project_id, cause_id)
         if dry_run:
             tx.rollback()
         else:
@@ -64,6 +81,7 @@ def apply_intervention(project_id: int):
             "updated": len(new_scores),
             "new_scores": {int(k): float(v) for k, v in new_scores.items()},
             "dry_run": dry_run,
+            "implemented_row_inserted": bool(inserted),
         }), 200
     except Exception:
         if tx.is_active:
