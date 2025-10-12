@@ -36,19 +36,17 @@ def create_app():
     from app.routes.scaling import scaling_bp
     from app.routes.auth import auth_bp
     from app.routes.admin_users import admin_users_bp
+    from app.routes.data_ingestion import ingestion_bp
 
-    app.register_blueprint(projects_bp, url_prefix="/api")         # <— FIRST
+    app.register_blueprint(projects_bp, url_prefix="/api")        
     app.register_blueprint(theme_weights_bp, url_prefix="/api")
     app.register_blueprint(interventions_bp, url_prefix="/api")
     app.register_blueprint(metrics_bp, url_prefix="/api")
     app.register_blueprint(scaling_bp, url_prefix="/api")
     app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(admin_users_bp, url_prefix="/api")
+    app.register_blueprint(ingestion_bp, url_prefix="/api")
 
-    # Optional: quick health route
-    @app.get("/api/health")
-    def health():
-        return {"ok": True}, 200
 
     return app
 
