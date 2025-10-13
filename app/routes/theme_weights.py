@@ -1,11 +1,31 @@
 # app/routes/theme_weights.py
 from __future__ import annotations
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, g
 from sqlalchemy import text
 from ..services.weightings import apply_weights
 from .. import get_conn
+import jwt  # <-- added
 
 theme_weights_bp = Blueprint("theme_weights", __name__, url_prefix="/api")
+
+# --- minimal inline JWT helpers -------------------------------------------
+def _get_bearer_token():
+    auth = request.headers.get("Authorization", "")
+    if not auth or not auth.lower().startswith("bearer "):
+        return None
+    return auth.split(None, 1)[1]
+
+def _decode_jwt(token: str):
+    if not token:
+        return None
+    secret = current_app.config.get("JWT_SECRET")
+    if not secret:
+        return None
+    try:
+        return jwt.decode(token, secret, algorithms=["HS256"])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None
+# --------------------------------------------------------------------------
 
 # --- helpers ---------------------------------------------------------------
 
@@ -30,15 +50,29 @@ def _require_editor_access(conn, project_id: int) -> bool:
 
 @theme_weights_bp.get("/themes")
 def list_themes():
+    # JWT required
+    token = _get_bearer_token()
+    if not _decode_jwt(token):
+        return {"error": "unauthorized"}, 401
+
     conn = get_conn()
     rows = conn.execute(
         text("SELECT id, name, description FROM themes ORDER BY id ASC")
     ).mappings().all()
     return jsonify({"themes": [dict(r) for r in rows]}), 200
 
+
 @theme_weights_bp.get("/projects/<int:project_id>/themes")
 @theme_weights_bp.get("/projects/<int:project_id>/theme-scores")  # alias for convenience/tests
 def get_project_theme_weightings(project_id: int):
+    # JWT required
+    token = _get_bearer_token()
+    payload = _decode_jwt(token)
+    if not payload:
+        return {"error": "unauthorized"}, 401
+    g.user_id = payload.get("sub")
+    g.user_role = payload.get("role")
+
     """
     Return ALL themes with any saved scores for this project (LEFT JOIN).
     weight_raw/weight_norm are null if not saved.
@@ -84,16 +118,25 @@ def get_project_theme_weightings(project_id: int):
         "weights": items,  # compatibility / convenience
     }), 200
 
+
 # Accept both PUT (preferred) and POST (compat) for a full save
 @theme_weights_bp.put("/projects/<int:project_id>/theme-scores")
 @theme_weights_bp.post("/projects/<int:project_id>/themes")
 def upsert_project_theme_weightings(project_id: int):
+    # JWT required
+    token = _get_bearer_token()
+    payload = _decode_jwt(token)
+    if not payload:
+        return {"error": "unauthorized"}, 401
+    g.user_id = payload.get("sub")
+    g.user_role = payload.get("role")
+
     """
     Full-save sliders for a project.
     Body: { "weights": { "<theme_id>": number, ... }, "dry_run"?: bool }
     """
-    payload = request.get_json(silent=True) or {}
-    weights_raw = payload.get("weights")
+    payload_json = request.get_json(silent=True) or {}
+    weights_raw = payload_json.get("weights")
 
     if not isinstance(weights_raw, dict) or not weights_raw:
         return {"error": "bad_request", "message": "missing 'weights' mapping"}, 400
@@ -112,7 +155,7 @@ def upsert_project_theme_weightings(project_id: int):
 
     total = sum(parsed.values())
     normalized = {tid: (0.0 if total <= 0 else (val / total)) for tid, val in parsed.items()}
-    dry_run = _parse_bool(request.args.get("dry_run")) or bool(payload.get("dry_run"))
+    dry_run = _parse_bool(request.args.get("dry_run")) or bool(payload_json.get("dry_run"))
 
     conn = get_conn()
     tx = conn.begin()

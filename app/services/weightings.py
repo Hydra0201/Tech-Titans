@@ -1,15 +1,19 @@
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
 
+def _begin_tx(conn: Connection):
+    """Open a root tx, or a savepoint if a tx is already active (guards/read SELECTs cause autobegin)."""
+    return conn.begin() if not conn.in_transaction() else conn.begin_nested()
+
 def normalise_weights(project_id: int, weightings: dict[int, float], conn: Connection) -> int:
     if not weightings:
         # zero out non-targeted interventions
-        with conn.begin():
+        with _begin_tx(conn):
             res = conn.execute(
                 text("UPDATE runtime_scores SET theme_weighted_effectiveness = 0 WHERE project_id = :pid"),
                 {"pid": project_id},
             )
-            return res.rowcount
+            return int(res.rowcount or 0)
 
     # Normalise
     clean = {int(k): float(v) for k, v in weightings.items() if float(v) >= 0.0}
@@ -18,17 +22,11 @@ def normalise_weights(project_id: int, weightings: dict[int, float], conn: Conne
         raise ValueError("Sum of weights must be > 0")
 
     rows = [
-        {
-            "pid": project_id,
-            "theme_id": tid,
-            "weight_raw": w,
-            "weight_norm": (w / total)
-        }
+        {"pid": project_id, "theme_id": tid, "weight_raw": w, "weight_norm": (w / total)}
         for tid, w in clean.items()
     ]
 
-    with conn.begin():
-        # Insert/update raw + normalised weightings to project_theme_weightings
+    with _begin_tx(conn):
         conn.execute(
             text("""
                 INSERT INTO project_theme_weightings (project_id, theme_id, weight_raw, weight_norm)
@@ -44,7 +42,7 @@ def normalise_weights(project_id: int, weightings: dict[int, float], conn: Conne
 
 def apply_weights(project_id: int, conn: Connection) -> int:
     """theme_weighted_effectiveness = adjusted_base_effectiveness * weight_norm; zero themes with no row."""
-    with conn.begin():
+    with _begin_tx(conn):
         res = conn.execute(
             text("""
                 UPDATE runtime_scores AS r
@@ -53,19 +51,18 @@ def apply_weights(project_id: int, conn: Connection) -> int:
                     * COALESCE(w.weight_norm, 0)
                 FROM interventions AS i
                 LEFT JOIN project_theme_weightings AS w
-                  ON w.project_id = :pid           -- ✅ no r.* inside JOIN
+                  ON w.project_id = :pid
                  AND w.theme_id   = i.theme_id
-                WHERE r.project_id = :pid          -- ✅ correlate target here
+                WHERE r.project_id = :pid
                   AND i.id = r.intervention_id
             """),
             {"pid": project_id},
         )
-        return res.rowcount
-
+        return int(res.rowcount or 0)
 
 def renormalise_weights(project_id: int, conn: Connection) -> int:
     """Recompute weight_norm from weight_raw"""
-    with conn.begin():
+    with _begin_tx(conn):
         res = conn.execute(
             text("""
                 WITH sumw AS (
@@ -80,11 +77,9 @@ def renormalise_weights(project_id: int, conn: Connection) -> int:
             """),
             {"pid": project_id},
         )
-        return res.rowcount
-    
+        return int(res.rowcount or 0)
 
-
-def decay_by_intervention(project_id: int, intervention_id: int, conn, alpha=0.6, floor=0.0) -> int:
+def decay_by_intervention(project_id: int, intervention_id: int, conn: Connection, alpha=0.6, floor=0.0) -> int:
     sql = """
     WITH target AS (
       SELECT i.theme_id
@@ -119,7 +114,9 @@ def decay_by_intervention(project_id: int, intervention_id: int, conn, alpha=0.6
     WHERE r.project_id = :pid
       AND i.id = r.intervention_id;
     """
-    with conn.begin():
-        res = conn.execute(text(sql), {"pid": project_id, "iid": intervention_id,
-                                       "alpha": float(alpha), "floor": float(floor)})
-        return res.rowcount
+    with _begin_tx(conn):
+        conn.execute(
+            text(sql),
+            {"pid": project_id, "iid": intervention_id, "alpha": float(alpha), "floor": float(floor)},
+        )
+        return 1  # UPDATE ... returns unreliable rowcount; signal success

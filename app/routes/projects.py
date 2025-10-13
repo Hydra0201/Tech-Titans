@@ -1,15 +1,32 @@
 # app/routes/projects.py
 from __future__ import annotations
 from datetime import datetime
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, g
 import jwt
 from sqlalchemy import text
 from .. import get_conn
-from ..services import rules_metric  # <--- NEW: used for optional post-create recompute
-from ..services.stages import recommendations as stage_recs
-
+from ..services import rules_metric  # used for optional post-create recompute
 
 projects_bp = Blueprint("projects", __name__)
+
+# --- minimal inline JWT helpers -------------------------------------------
+def _get_bearer_token():
+    auth = request.headers.get("Authorization", "")
+    if not auth or not auth.lower().startswith("bearer "):
+        return None
+    return auth.split(None, 1)[1]
+
+def _decode_jwt(token: str):
+    if not token:
+        return None
+    secret = current_app.config.get("JWT_SECRET")
+    if not secret:
+        return None
+    try:
+        return jwt.decode(token, secret, algorithms=["HS256"])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None
+# --------------------------------------------------------------------------
 
 # --- helpers -------------------------------------------------
 
@@ -61,17 +78,17 @@ def _row_to_dict(row) -> dict:
 # --- routes --------------------------------------------------
 @projects_bp.post("/projects")
 def create_project():
-    # --- inline JWT owner extraction ---
-    auth = request.headers.get("Authorization", "")
-    if not auth or not auth.lower().startswith("bearer "):
+    # JWT required; extract owner from token
+    token = _get_bearer_token()
+    payload = _decode_jwt(token)
+    if not payload:
         return {"error": "unauthorized"}, 401
-    token = auth.split(None, 1)[1]
+    g.user_id = payload.get("sub")
+    g.user_role = payload.get("role")
     try:
-        payload = jwt.decode(token, current_app.config["JWT_SECRET"], algorithms=["HS256"])
-        owner_user_id = int(payload.get("sub"))
+        owner_user_id = int(str(g.user_id))
     except Exception:
         return {"error": "unauthorized"}, 401
-    # -----------------------------------
 
     data = request.get_json(silent=True) or {}
     name = str(data.get("name") or "").strip()
@@ -104,7 +121,7 @@ def create_project():
         row = conn.execute(text(sql), params).mappings().one()
         tx.commit()
 
-        # OPTIONAL BUT HELPFUL: if numeric fields were provided at create-time,
+        # OPTIONAL: if numeric fields were provided at create-time,
         # run the scoring pipeline immediately so runtime_scores is populated
         project_id = int(row["id"])
         metrics_in_body = {
@@ -133,6 +150,11 @@ def create_project():
 
 @projects_bp.get("/projects/<int:project_id>")
 def get_project(project_id: int):
+    # JWT required (no behavior change beyond auth)
+    token = _get_bearer_token()
+    if not _decode_jwt(token):
+        return {"error": "unauthorized"}, 401
+
     conn = get_conn()
     row = conn.execute(
         text("""
@@ -155,6 +177,11 @@ def get_project(project_id: int):
 
 @projects_bp.patch("/projects/<int:project_id>")
 def patch_project(project_id: int):
+    # JWT required
+    token = _get_bearer_token()
+    if not _decode_jwt(token):
+        return {"error": "unauthorized"}, 401
+
     data = request.get_json(silent=True) or {}
     updates = _coerce_payload(data)
     updates = {k: v for k, v in updates.items() if k in _ALLOWED_PATCH_FIELDS}
@@ -195,6 +222,11 @@ def patch_project(project_id: int):
 
 @projects_bp.delete("/projects/<int:project_id>")
 def delete_project(project_id: int):
+    # JWT required
+    token = _get_bearer_token()
+    if not _decode_jwt(token):
+        return {"error": "unauthorized"}, 401
+
     conn = get_conn()
     tx = conn.begin()
     try:
@@ -212,5 +244,3 @@ def delete_project(project_id: int):
     except Exception:
         if tx.is_active: tx.rollback()
         return {"error": "server_error"}, 500
-    
-

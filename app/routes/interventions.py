@@ -1,11 +1,31 @@
 # app/routes/interventions.py
 from __future__ import annotations
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, g
 from sqlalchemy import text
 from .. import get_conn
 from ..services.rules_intervention import intervention_recompute
+import jwt  # <-- added
 
 interventions_bp = Blueprint("interventions", __name__)
+
+# --- minimal inline JWT helpers -------------------------------------------
+def _get_bearer_token():
+    auth = request.headers.get("Authorization", "")
+    if not auth or not auth.lower().startswith("bearer "):
+        return None
+    return auth.split(None, 1)[1]
+
+def _decode_jwt(token: str):
+    if not token:
+        return None
+    secret = current_app.config.get("JWT_SECRET")
+    if not secret:
+        return None
+    try:
+        return jwt.decode(token, secret, algorithms=["HS256"])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None
+# ---------------------------------------------------------------------------
 
 # --- helpers ---------------------------------------------------------------
 
@@ -36,6 +56,16 @@ def apply_intervention(project_id: int):
     Applies all dependency rules where this intervention is the cause and
     upserts new runtime scores for affected interventions.
     """
+    # JWT required (no role/ownership change to behavior)
+    token = _get_bearer_token()
+    payload = _decode_jwt(token)
+    if not payload:
+        return {"error": "unauthorized"}, 401
+    # Expose if you ever need it later; 
+    g.user_id = payload.get("sub")
+    g.user_role = payload.get("role")
+    g.user_email = payload.get("email")
+
     data = request.get_json(silent=True) or {}
     try:
         cause_id = int(data.get("intervention_id"))
@@ -53,6 +83,7 @@ def apply_intervention(project_id: int):
 
     tx = conn.begin()
     try:
+        # (kept) first recompute call
         new_scores = intervention_recompute(conn, project_id, cause_id)
 
         inserted = 0
@@ -69,12 +100,14 @@ def apply_intervention(project_id: int):
             )
             inserted = res.rowcount or 0
 
-        # Recompute effects
+        # (kept) second recompute call exactly as in your current logic
         new_scores = intervention_recompute(conn, project_id, cause_id)
+
         if dry_run:
             tx.rollback()
         else:
             tx.commit()
+
         return jsonify({
             "project_id": project_id,
             "cause_intervention_id": cause_id,

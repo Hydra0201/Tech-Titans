@@ -1,11 +1,12 @@
 # app/routes/admin_users.py
 from datetime import datetime
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, g
 from passlib.context import CryptContext
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from psycopg.errors import UniqueViolation
 import re
+import jwt  # <-- added
 
 from .. import get_conn
 
@@ -29,6 +30,25 @@ def _norm_access(v: str | None) -> str:
     # default MUST be 'view' (not 'viewer')
     return (v or "view").strip().lower()
 
+def _get_bearer_token() -> str | None:
+    auth = request.headers.get("Authorization", "")
+    if not auth or not auth.lower().startswith("bearer "):
+        return None
+    return auth.split(None, 1)[1]
+
+def _decode_jwt(token: str) -> dict | None:
+    """Decode HS256 JWT using app config; return payload or None."""
+    if not token:
+        return None
+    secret = current_app.config.get("JWT_SECRET")
+    if not secret:
+        # Misconfiguration; treat as unauthorized rather than 500
+        return None
+    try:
+        return jwt.decode(token, secret, algorithms=["HS256"])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None
+
 @admin_users_bp.post("/admin/users")
 def create_user():
     """
@@ -37,9 +57,28 @@ def create_user():
     Returns:
       201 { user }
       400 { error: bad_request | invalid_email }
+      401 { error: unauthorized }
+      403 { error: forbidden }
       409 { error: email_exists }
       500 { error: server_error }
     """
+
+    # ---------- JWT guard: require valid token with Admin role ----------
+    token = _get_bearer_token()
+    payload = _decode_jwt(token)
+    if not payload:
+        return jsonify({"error": "unauthorized"}), 401
+
+    # token format aligns with your login route: {"sub": str(id), "role": "...", ...}
+    role = payload.get("role")
+    if role != "Admin":
+        return jsonify({"error": "forbidden"}), 403
+    # (Optional) expose user info to handler if you need it later
+    g.user_id = payload.get("sub")
+    g.user_role = role
+    g.user_email = payload.get("email")
+    # -------------------------------------------------------------------
+
     data = request.get_json(silent=True) or {}
 
     name = (data.get("name") or "").strip() or None
