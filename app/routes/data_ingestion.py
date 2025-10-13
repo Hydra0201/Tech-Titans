@@ -1,41 +1,71 @@
 from pathlib import Path
-from flask import Blueprint
+from flask import Blueprint, jsonify
 import pandas as pd
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
-
+from ..services.data_ingestion import actions, sql_stmts
 from app import get_conn
 
 
-ingestion = Blueprint("costs", __name__)
+ingestion_bp = Blueprint("ingest", __name__)
 
 BASE_DIR = Path(__file__).resolve().parent
-EXCEL_PATH = BASE_DIR / "interventions.xlsx" 
-SHEET_NAME = "interventions"
+EXCEL_PATH = "app/data_ingestion/interventions.xlsx" 
+actions.EXCEL_PATH = EXCEL_PATH
 
-@ingestion.post("/ingest")
+
+@ingestion_bp.post("/ingest")
 def ingest():
-    try:
-        with get_conn() as conn:
-            df = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_NAME, engine="openpyxl")
-            df.columns = [c.strip().lower() for c in df.columns]
-            df = df.where(pd.notnull(df), None)
+    results = {}
 
-            records = df[["id", "name", "theme_id", "base_effectiveness"]].to_dict("records")
-            if not records:
-                return 0
 
-            stmt = text("""
-                INSERT INTO interventions (id, name, theme_id, base_effectiveness)
-                VALUES (:id, :name, :theme_id, :base_effectiveness)
-                ON CONFLICT (id) DO UPDATE
-                SET name = EXCLUDED.name,
-                    theme_id = EXCLUDED.theme_id,
-                    base_effectiveness = EXCLUDED.base_effectiveness
-            """)
+    resp, status = actions.read_sheet(
+        sheet="themes",
+        columns=["id", "name"],
+        stmt=sql_stmts.themes,       
+    )
+    results["themes"] = resp
+    if status != 200:
+        return jsonify(results), status
 
-            conn.execute(stmt, records)
-            conn.commit()
-        return ({"success": "updated DB" }), 200
-    except Exception:
-        return({"error": "failed to update DB"}), 500
+    resp, status = actions.read_sheet(
+        sheet="interventions",
+        columns=["id", "name", "theme_id", "base_effectiveness"],
+        stmt=sql_stmts.interventions,
+    )
+    results["interventions"] = resp
+    if status != 200:
+        return jsonify(results), status
+
+    resp, status = actions.read_sheet(
+        sheet="stages",
+        columns=["src_intervention_id", "dst_intervention_id", "relation_type"],
+        stmt=sql_stmts.stages,
+    )
+    results["stages"] = resp
+    if status != 200:
+        return jsonify(results), status
+
+    resp, status = actions.read_sheet(
+        sheet="metric_effects",
+        columns=["id", "cause", "effected_intervention", "metric_type", "lower_bound", "upper_bound", "multiplier"],
+        stmt=sql_stmts.metric_effects,
+    )
+    results["metric_effects"] = resp
+    if status != 200:
+        return jsonify(results), status
+
+    resp, status = actions.read_sheet(
+        sheet="intervention_effects",
+        columns=["id", "cause_intervention", "effected_intervention", "metric_type", "lower_bound", "upper_bound", "multiplier"],
+        stmt=sql_stmts.intervention_effects,
+    )
+    results["intervention_effects"] = resp
+    if status != 200:
+        return jsonify(results), status
+
+    return jsonify({"ok": True, "details": results}), 200
+
+@ingestion_bp.delete("/clear_db")
+def clear():
+    actions.clear_db()
