@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, current_app, render_template, request, url_for, Response
 from .. import get_conn
 from ..services import report as report_service
-
+from weasyprint import HTML
 
 report_bp = Blueprint("report", __name__)
 
