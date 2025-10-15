@@ -37,6 +37,7 @@ def create_app():
     from app.routes.auth import auth_bp
     from app.routes.admin_users import admin_users_bp
     from app.routes.data_ingestion import ingestion_bp
+    from app.routes.report import report_bp
     from app.routes.graph import graphs_bp
 
     app.register_blueprint(projects_bp, url_prefix="/api")        
@@ -47,6 +48,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(admin_users_bp, url_prefix="/api")
     app.register_blueprint(ingestion_bp, url_prefix="/api")
+    app.register_blueprint(report_bp, url_prefix="/api")
     app.register_blueprint(graphs_bp)
 
     return app
