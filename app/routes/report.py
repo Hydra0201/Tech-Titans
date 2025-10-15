@@ -42,7 +42,6 @@ def report_pdf(project_id: int):
 
     graph_url = url_for("graphs.project_graph_svg", project_id=project_id, _external=True)
 
-    # Render HTML via Jinja first
     html_str = render_template(
         "report.html",
         project_id=project_id,
