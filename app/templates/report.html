@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Project {{ project_id }} — Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --fg:#222; --muted:#666; --rule:#ddd; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif; color:var(--fg); margin: 24px; }
+    header { margin-bottom: 16px; }
+    h1 { font-size: 22px; margin: 0 0 6px 0; }
+    .meta { color: var(--muted); font-size: 12px; }
+    hr { border: none; border-top: 1px solid var(--rule); margin: 16px 0; }
+
+    .section-title { font-size: 16px; margin: 16px 0 8px; }
+    .implemented-table { width: 100%; border-collapse: collapse; }
+    .implemented-table th, .implemented-table td { text-align: left; padding: 8px; border-bottom: 1px solid var(--rule); font-size: 13px; }
+    .badge { font-variant-numeric: tabular-nums; background:#f3f4f6; padding: 2px 6px; border-radius: 6px; }
+    .graph-wrap { margin-top: 8px; page-break-inside: avoid; }
+
+    @page { margin: 18mm; }
+    @media print {
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Project {{ project_id }} — Implemented Interventions & Graph</h1>
+  </header>
+
+  <section>
+    <div class="section-title">Implemented interventions</div>
+    {% if implemented %}
+      <table class="implemented-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Label</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for row in implemented %}
+          <tr>
+            <td>{{ row.intervention_id }}</td>
+            <td>
+              {{ row.name if row.name else ('Intervention ' ~ row.intervention_id) }}
+            </td>
+            <td><span class="badge">{{ "%.2f"|format(row.score) }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No implemented interventions found.</p>
+    {% endif %}
+  </section>
+
+  <hr />
+
+  <section>
+    <div class="section-title">Intervention graph (top relationships)</div>
+    <div class="graph-wrap">
+      <img src="{{ graph_url }}" alt="Intervention graph for project {{ project_id }}" style="max-width:100%; height:auto;" />
+    </div>
+  </section>
+</body>
+</html>
