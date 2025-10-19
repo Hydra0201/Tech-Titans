@@ -14,7 +14,7 @@ if not DATABASE_URL:
     )
 
 # Create sync engine (psycopg3 driver). pool_pre_ping avoids dead connections.
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(DATABASE_URL, future=True, pool_pre_ping=True, pool_recycle=1800,)
 
 # Session factory you can import anywhere: `from carbonbalance.db.engine import SessionLocal`
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)

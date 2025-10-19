@@ -1,12 +1,8 @@
-# app/routes/data_ingestion.py
 from pathlib import Path
 from flask import Blueprint, jsonify, request, current_app, g
-import pandas as pd
-from sqlalchemy import text
-from sqlalchemy.engine import Connection
-from ..services.data_ingestion import actions, sql_stmts
-from app import get_conn
-import jwt  # <-- added
+from ..services.data_ingestion import actions
+import traceback
+import jwt 
 
 ingestion_bp = Blueprint("ingest", __name__)
 
@@ -14,7 +10,6 @@ BASE_DIR = Path(__file__).resolve().parent
 EXCEL_PATH = "app/data_ingestion/interventions.xlsx"
 actions.EXCEL_PATH = EXCEL_PATH
 
-# --- minimal inline JWT helpers -------------------------------------------
 def _get_bearer_token():
     auth = request.headers.get("Authorization", "")
     if not auth or not auth.lower().startswith("bearer "):
@@ -31,12 +26,12 @@ def _decode_jwt(token: str):
         return jwt.decode(token, secret, algorithms=["HS256"])
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None
-# --------------------------------------------------------------------------
-
 
 @ingestion_bp.post("/ingest")
 def ingest():
-    # JWT + Admin required
+
+
+    # JWT
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
@@ -46,58 +41,44 @@ def ingest():
     g.user_id = payload.get("sub")
 
     results = {}
+    try:
+        resp, status = actions.upsert_themes_by_name()
+        results["themes"] = resp
+        if status != 200: return jsonify(results), status
 
-    resp, status = actions.read_sheet(
-        sheet="themes",
-        columns=["id", "name"],
-        stmt=sql_stmts.themes,
-    )
-    results["themes"] = resp
-    if status != 200:
-        return jsonify(results), status
+        resp, status = actions.upsert_interventions_by_name()
+        results["interventions"] = resp
+        if status != 200: return jsonify(results), status
 
-    resp, status = actions.read_sheet(
-        sheet="interventions",
-        columns=["id", "name", "theme_id", "base_effectiveness"],
-        stmt=sql_stmts.interventions,
-    )
-    results["interventions"] = resp
-    if status != 200:
-        return jsonify(results), status
+        resp, status = actions.upsert_stages_by_names()
+        results["stages"] = resp
+        if status != 200: return jsonify(results), status
 
-    resp, status = actions.read_sheet(
-        sheet="stages",
-        columns=["src_intervention_id", "dst_intervention_id", "relation_type"],
-        stmt=sql_stmts.stages,
-    )
-    results["stages"] = resp
-    if status != 200:
-        return jsonify(results), status
+        resp, status = actions.upsert_effects_by_names(
+            sheet="metric_effects",
+            id_key_cause="cause",
+            id_key_effect="effected_intervention",
+        )
+        results["metric_effects"] = resp
+        if status != 200: return jsonify(results), status
 
-    resp, status = actions.read_sheet(
-        sheet="metric_effects",
-        columns=["id", "cause", "effected_intervention", "metric_type", "lower_bound", "upper_bound", "multiplier"],
-        stmt=sql_stmts.metric_effects,
-    )
-    results["metric_effects"] = resp
-    if status != 200:
-        return jsonify(results), status
+        resp, status = actions.upsert_effects_by_names(
+            sheet="intervention_effects",
+            id_key_cause="cause_intervention",
+            id_key_effect="effected_intervention",
+        )
+        results["intervention_effects"] = resp
+        if status != 200: return jsonify(results), status
 
-    resp, status = actions.read_sheet(
-        sheet="intervention_effects",
-        columns=["id", "cause_intervention", "effected_intervention", "metric_type", "lower_bound", "upper_bound", "multiplier"],
-        stmt=sql_stmts.intervention_effects,
-    )
-    results["intervention_effects"] = resp
-    if status != 200:
-        return jsonify(results), status
+        return jsonify({"ok": True, "details": results}), 200
 
-    return jsonify({"ok": True, "details": results}), 200
+    except Exception as e:
+        return jsonify({"error": str(e), "trace": traceback.format_exc(), "details": results}), 500
 
 
 @ingestion_bp.delete("/clear_db")
 def clear():
-    # JWT + Admin required
+
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:

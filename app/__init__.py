@@ -4,6 +4,7 @@ from flask import Flask, g
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from flask_cors import CORS
+from flask import current_app
 
 def create_app():
     load_dotenv()
@@ -55,8 +56,4 @@ def create_app():
 
 
 def get_conn():
-    """One connection per request; pooled under the hood."""
-    from flask import current_app
-    if "_pg_conn" not in g:
-        g._pg_conn = current_app.config["PG_ENGINE"].connect()
-    return g._pg_conn
+    return current_app.config["PG_ENGINE"].connect()

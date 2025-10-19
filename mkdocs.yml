@@ -1,0 +1,20 @@
+site_name: CarbonBalance Docs
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            show_submodules: true
+            filters: ["!^_"]
+            members_order: source
+
+
+nav:
+  - Home: index.md
+  - API:
+      - "API Reference": api.md
