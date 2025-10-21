@@ -4,6 +4,7 @@ from flask import Blueprint, request, jsonify, current_app, g
 from sqlalchemy import text
 from .. import get_conn
 from ..services.rules_intervention import intervention_recompute
+from ..services.weightings import apply_weights
 import jwt  # <-- added
 
 interventions_bp = Blueprint("interventions", __name__)
@@ -83,7 +84,7 @@ def apply_intervention(project_id: int):
 
     tx = conn.begin()
     try:
-        # (kept) first recompute call
+
         new_scores = intervention_recompute(conn, project_id, cause_id)
 
         inserted = 0
@@ -100,8 +101,8 @@ def apply_intervention(project_id: int):
             )
             inserted = res.rowcount or 0
 
-        # (kept) second recompute call exactly as in your current logic
         new_scores = intervention_recompute(conn, project_id, cause_id)
+        apply_weights(project_id, conn)
 
         if dry_run:
             tx.rollback()

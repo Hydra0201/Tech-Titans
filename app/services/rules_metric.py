@@ -90,7 +90,7 @@ def save_project_metrics(conn: Connection, project_id: int, metrics: Dict[str, f
 
 def metric_recompute(conn: Connection, project_id: int) -> Dict[int, float]:
     """
-    Recompute runtime scores.
+    Recompute runtime scores based on metric rules.
     Returns: {intervention_id: adjusted_base_effectiveness}
     """
 
@@ -139,6 +139,7 @@ def metric_recompute(conn: Connection, project_id: int) -> Dict[int, float]:
 
 
 def upsert_runtime_scores(conn: Connection, project_id: int, scores: Dict[int, float]) -> None:
+    """For a given project_id, updates adjusted_base_effectiveness values with contents of the scores Dict"""
     if not scores:
         return
 

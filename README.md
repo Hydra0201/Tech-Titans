@@ -27,19 +27,10 @@ If you install a new dependency, do the following to update requirements.txt:
 
 To run the tests, run `pytest` in console. If this doesn't work, first do `pip install -e .`
 
+## Documentation
 
-## .gitignore
+Documentation for the contents of app/services/ can be found on the mkdocs page. Run `mkdocs serve` from the top level directory.
 
-You should create a .gitignore file so that you can define files you don't want to get pushed to github.
-Mine looks like this currently:
-```
-.venv/  
-venv/
-__pycache__/
-*.py[cod]
-.vscode/
-.pytest_cache/
-*.egg-info/
-dist/
-build/
-```
+## Getting Help
+
+Feel free to email roghan@purelymail.com with any questions unanswered by the documentation.

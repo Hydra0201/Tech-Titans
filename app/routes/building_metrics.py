@@ -4,6 +4,7 @@ from sqlalchemy import text
 from .. import get_conn
 from ..services import rules_metric, stages
 import jwt  # <-- added
+from ..services.weightings import apply_weights
 
 metrics_bp = Blueprint("metrics", __name__)
 
@@ -25,13 +26,6 @@ def _decode_jwt(token: str):
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None
 # --------------------------------------------------------------------------
-
-
-@metrics_bp.get("/hello")  # DB health (public)
-def get_health():
-    conn = get_conn()
-    row = conn.execute(text("SELECT 1 AS ok")).one()
-    return {"ok": row.ok}, 200
 
 
 # ---------- Metrics ingest + recompute ----------
@@ -75,6 +69,7 @@ def send_metrics(project_id: int):
         rules_metric.save_project_metrics(conn, project_id, metrics)
         scores = rules_metric.metric_recompute(conn, project_id)
         rules_metric.upsert_runtime_scores(conn, project_id, scores)
+        apply_weights(project_id, conn)
 
         if dry_run:
             tx.rollback()

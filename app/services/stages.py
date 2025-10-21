@@ -12,7 +12,7 @@ def recommendations(conn: Connection, project_id: int, limit: int = 3) -> List[M
     """
     rows = conn.execute(
         text("""
-            SELECT r.intervention_id, i.name, r.adjusted_base_effectiveness
+            SELECT r.intervention_id, i.name, r.theme_weighted_effectiveness
             FROM runtime_scores r
             JOIN interventions i ON i.id = r.intervention_id
             WHERE r.project_id = :pid
@@ -47,14 +47,10 @@ def recommendations(conn: Connection, project_id: int, limit: int = 3) -> List[M
                       )
                     )
                 )
-            ORDER BY r.adjusted_base_effectiveness DESC
+            ORDER BY r.theme_weighted_effectiveness DESC
             LIMIT :lim
         """),
         {"pid": project_id, "lim": limit},
     ).mappings().all()
     return rows
 
-# This implementation requires:
-    # an "is_stage" flag in the interventions table
-    # an implemented_interventions table containing FK to intervention id ()
-    # and a stages table with a src_intervention_id, dst_intervention_id, and relation_type

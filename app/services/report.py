@@ -3,6 +3,10 @@ from sqlalchemy import text
 from sqlalchemy.engine import Connection
 
 def implemented(conn: Connection, project_id: int) -> List[Dict[str, Any]]:
+    """Return implemented interventions for a project, ordered by score (desc).
+
+    Each item has keys: intervention_id:int, name:str, score:float|None.
+    """
     result = conn.execute(text("""
         SELECT
           rs.intervention_id,
@@ -14,4 +18,4 @@ def implemented(conn: Connection, project_id: int) -> List[Dict[str, Any]]:
         WHERE rs.project_id = :project_id
         ORDER BY score DESC
     """), {"project_id": project_id})
-    return [dict(r._mapping) for r in result]
+    return [dict(m) for m in result.mappings().all()]

@@ -80,6 +80,7 @@ def renormalise_weights(project_id: int, conn: Connection) -> int:
         return int(res.rowcount or 0)
 
 def decay_by_intervention(project_id: int, intervention_id: int, conn: Connection, alpha=0.6, floor=0.0) -> int:
+    """Decay a theme's weighting"""
     sql = """
     WITH target AS (
       SELECT i.theme_id
@@ -119,4 +120,4 @@ def decay_by_intervention(project_id: int, intervention_id: int, conn: Connectio
             text(sql),
             {"pid": project_id, "iid": intervention_id, "alpha": float(alpha), "floor": float(floor)},
         )
-        return 1  # UPDATE ... returns unreliable rowcount; signal success
+        return 1
