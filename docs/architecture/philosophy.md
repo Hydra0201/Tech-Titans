@@ -5,6 +5,9 @@ This document is written for future developers, maintainers, and stakeholders to
 ## Purpose
 CarbonBalance is a tool to support sustainability decision-making in early-stage construction projects where data is uncertain and expert judgment still dominates. Instead of trying to provide exact answers, the system organises expert knowledge into a transparent heuristic model that can rank sustainability interventions, explore trade-offs, and communicate reasoning.
 
+!!! tip
+    CarbonBalance is not an AI system or a full-scale simulation model. It is a **structured decision-support system** that combines expert knowledge with simple, configurable heuristics.
+
 ### System Assumptions
 
 1. Core data (interventions, themes, rules) is maintained by an administrative user with domain expertise.
@@ -14,12 +17,18 @@ CarbonBalance is a tool to support sustainability decision-making in early-stage
 
 ### Design Principles
 - Scoring should be deterministic, i.e. a given set of inputs should always produce the same output.
-- **Interactivity** - the system makes suggests, but the user is allowed to decide.
+- **Interactivity** - the system makes suggestions, but the user is allowed to decide.
     - Maintaining some level of choice gives the user an impression of both control and responsibility
 - **Extendability** - future rules and data should be easy to evolve (i.e., don't hardcode them, represent them in a modifiable form)
 
 ## Problem Context
-Early in the project, I had hoped to build a system based on hard data which would take some project parameters as input and output a list of ideal interventions. Unfortunately, this was simply not possible; during the early planning stage of a construction project there is a great deal of uncertainty, and overly general suggestions are much more valuable than accurate, specific recommendations, as any extant project data is subject to change, and decisions are tentative. In my view, a heuristic system is the only reasonable way to approach the problem of sustainable intervention recommendation for early-stage construction projects.
+Design decisions in construction start long before detailed engineering data exists. In the early stages of a project:
+
+- Building form and materials are uncertain  
+- Budgets are flexible  
+- Sustainability goals are still being negotiated  
+
+Attempting **data-driven precision** at this stage is misleading. Instead, **ranked heuristic guidance** is more valuable than exact predictions. Therefore, CarbonBalance uses a **transparent heuristic model** derived from expert knowledge rather than statistical modelling.
 
 ## Core Ideas
 CarbonBalance implements a heuristic model intended to reflect Costplan's proprietary knowledge of sustainable construction interventions, a major challenge and goal in designing this system has been to create a simple means by which this knowledge can be translated to a combination of numeric values and logical rules in a general fashion.
@@ -48,16 +57,36 @@ The most basic assumption underpinning this model is that each intervention can 
 This "base effectiveness" value is used as the baseline for every project, and is scaled by:
 
 1. Building metrics
-    - This is used to represent difference between projects.
-    - E.g.:
-        - External wall area
-        - GIFA
-        - Levels
-        - ...
-2. Theme weightings
+    - External wall area
+    - GIFA
+    - Levels
+    - ...
+2. Theme weightings 
     - Users set weightings to represent how much they care about specific themes
 3. Intervention dependencies
     - Complex dependencies often exist between interventions, e.g. if "Implementation of physical security measures" is implemented, "Security Risk Assessment" will have less overall impact, as there is a smaller capacity for improvement (i.e., overlapping interventions can be wasteful).
+
+#### Building metrics
+Building metrics are used to represent unique differences between projects. The values assigned to these metrics will be considered against heuristic rules in order to scale base effectiveness values in order to reflect the way in which differing project circumstances will effect how useful an intervention is. E.g., if a building has a small basement size as compared to its GIFA (gross internal flooring area), the "Remove basement" intervention will not be very effective. 
+
+In order to represent this, we might have a metric scaling rule which states that if $GIFA:Basement Size < 0.25$, this will have a Strong Negative impact on the base effectiveness of "Remove basement", which we resolve to be $\times0.5$ multiplier.
+
+<table>
+  <tr>
+    <th></th><th>Positive</th><th>Negative</th>
+  </tr>
+  <tr>
+    <th>Strong</th><td>1.5</td><td>0.5</td>
+  </tr>
+  <tr>
+    <th>Moderate</th><td>1.3</td><td>0.7</td>
+  </tr>
+  <tr>
+    <th>Weak</th><td>1.1</td><td>0.9</td>
+  </tr>
+</table>
+
+So if "Remove basement" has a base effectiveness of 8, but the building metric scaling rule has a Strong Negative impact on this score, $8 * 0.5 = 4$, so the score for "Remove basement" is adjusted to $4$ in the scope of the current project.
 
 ## User Experience
 A simplified version of the ideal user experience can be modelled in the following way:
@@ -76,6 +105,14 @@ As alluded to, the scoring model involves starting off by giving each interventi
 - Theme weightings
 - Dependencies between interventions
 
+```mermaid
+flowchart LR
+  Metrics -->|apply metric rules| Scoring
+  Weightings --> |apply weighting values| Scoring
+  Dependencies --> |apply dependency rules| Scoring
+  Scoring --> Recommendations
+```
+
 In our model, we consider the "best" intervention to be whichever has the highest score after all relevant scaling is applied.
 
-Further detail about the specifics of the scoring model and its usage is provided in the "Scoring" page.
+You can read more about the scoring model [here](../architecture/scoring.md).

@@ -91,9 +91,7 @@ def get_project_theme_weightings(project_id: int):
         text("""
             SELECT
                 t.id   AS id,
-                t.name AS name,
-                pts.weight_raw,
-                pts.weight_norm
+                t.name AS name
             FROM themes AS t
             LEFT JOIN project_theme_weightings AS pts
               ON pts.theme_id = t.id AND pts.project_id = :pid
@@ -106,8 +104,6 @@ def get_project_theme_weightings(project_id: int):
         {
             "id": r["id"],
             "name": r["name"],
-            "weight_raw": float(r["weight_raw"]) if r["weight_raw"] is not None else None,
-            "weight_norm": float(r["weight_norm"]) if r["weight_norm"] is not None else None,
         }
         for r in rows
     ]
@@ -115,7 +111,6 @@ def get_project_theme_weightings(project_id: int):
     return jsonify({
         "project_id": project_id,
         "themes": items,   # UI uses this
-        "weights": items,  # compatibility / convenience
     }), 200
 
 
