@@ -6,6 +6,7 @@ import jwt
 from sqlalchemy import text
 from .. import get_conn
 from ..services import rules_metric  # used for optional post-create recompute
+from ..services.weightings import apply_weights  # NEW
 
 projects_bp = Blueprint("projects", __name__)
 
@@ -29,7 +30,6 @@ def _decode_jwt(token: str):
 # --------------------------------------------------------------------------
 
 # --- helpers -------------------------------------------------
-
 _NUM_FIELDS = {
     "levels": int,
     "external_wall_area": float,
@@ -115,37 +115,55 @@ def create_project():
           owner_user_id, created_at, updated_at
     """
 
-    conn = get_conn()
-    tx = conn.begin()
-    try:
-        row = conn.execute(text(sql), params).mappings().one()
-        tx.commit()
-
-        # OPTIONAL: if numeric fields were provided at create-time,
-        # run the scoring pipeline immediately so runtime_scores is populated
-        project_id = int(row["id"])
-        metrics_in_body = {
-            k: fields[k] for k in _NUM_FIELDS.keys()
-            if k in fields and fields[k] is not None
-        }
-        if metrics_in_body:
-            conn2 = get_conn()
-            tx2 = conn2.begin() if not conn2.in_transaction() else conn2.begin_nested()
+    # Use context manager so connection returns to pool promptly
+    with get_conn() as conn:
+        tx = conn.begin()
+        try:
+            # Defensive per-request timeout (harmless if unsupported)  # NEW
             try:
-                rules_metric.save_project_metrics(conn2, project_id, metrics_in_body)
-                scores = rules_metric.metric_recompute(conn2, project_id)
-                rules_metric.upsert_runtime_scores(conn2, project_id, scores)
-                tx2.commit()
+                conn.exec_driver_sql("SET LOCAL statement_timeout = 8000")
             except Exception:
-                if tx2.is_active:
-                    tx2.rollback()
-                current_app.logger.exception("post-create recompute failed")
+                pass
 
-        return jsonify({"project": _row_to_dict(row)}), 201
-    except Exception:
-        if tx.is_active:
-            tx.rollback()
-        return {"error": "server_error"}, 500
+            row = conn.execute(text(sql), params).mappings().one()
+            tx.commit()
+
+            # OPTIONAL: if numeric fields were provided at create-time,
+            # run the scoring pipeline immediately so runtime_scores is populated
+            project_id = int(row["id"])
+            metrics_in_body = {
+                k: fields[k] for k in _NUM_FIELDS.keys()
+                if k in fields and fields[k] is not None
+            }
+            if metrics_in_body:
+                with get_conn() as conn2:
+                    tx2 = conn2.begin() if not conn2.in_transaction() else conn2.begin_nested()
+                    try:
+                        # Defensive timeout here too                                  # NEW
+                        try:
+                            conn2.exec_driver_sql("SET LOCAL statement_timeout = 8000")
+                        except Exception:
+                            pass
+
+                        rules_metric.save_project_metrics(conn2, project_id, metrics_in_body)
+                        scores = rules_metric.metric_recompute(conn2, project_id)
+                        rules_metric.upsert_runtime_scores(conn2, project_id, scores)
+                        # Make theme-weighted values current right away                 # NEW
+                        try:
+                            apply_weights(project_id, conn2)
+                        except Exception:
+                            current_app.logger.exception("apply_weights (post-create) failed")
+                        tx2.commit()
+                    except Exception:
+                        if tx2.is_active:
+                            tx2.rollback()
+                        current_app.logger.exception("post-create recompute failed")
+
+            return jsonify({"project": _row_to_dict(row)}), 201
+        except Exception:
+            if tx.is_active:
+                tx.rollback()
+            return {"error": "server_error"}, 500
 
 
 @projects_bp.get("/projects/<int:project_id>")
@@ -155,20 +173,20 @@ def get_project(project_id: int):
     if not _decode_jwt(token):
         return {"error": "unauthorized"}, 401
 
-    conn = get_conn()
-    row = conn.execute(
-        text("""
-            SELECT id, name, status, project_type, building_type, location,
-                   levels, external_wall_area, footprint_area, opening_pct,
-                   wall_to_floor_ratio, footprint_gifa, gifa_total,
-                   external_openings_area, avg_height_per_level,
-                   created_at, updated_at
-            FROM projects
-            WHERE id = :pid
-            LIMIT 1
-        """),
-        {"pid": project_id},
-    ).mappings().one_or_none()
+    with get_conn() as conn:
+        row = conn.execute(
+            text("""
+                SELECT id, name, status, project_type, building_type, location,
+                       levels, external_wall_area, footprint_area, opening_pct,
+                       wall_to_floor_ratio, footprint_gifa, gifa_total,
+                       external_openings_area, avg_height_per_level,
+                       created_at, updated_at
+                FROM projects
+                WHERE id = :pid
+                LIMIT 1
+            """),
+            {"pid": project_id},
+        ).mappings().one_or_none()
 
     if not row:
         return {"error": "not_found"}, 404
@@ -191,33 +209,39 @@ def patch_project(project_id: int):
     sets = ", ".join(f"{k} = :{k}" for k in updates.keys())
     updates["pid"] = project_id
 
-    conn = get_conn()
-    tx = conn.begin()
-    try:
-        row = conn.execute(
-            text(f"""
-                UPDATE projects
-                SET {sets}
-                WHERE id = :pid
-                RETURNING
-                  id, name, status, project_type, building_type, location,
-                  levels, external_wall_area, footprint_area, opening_pct,
-                  wall_to_floor_ratio, footprint_gifa, gifa_total,
-                  external_openings_area, avg_height_per_level,
-                  created_at, updated_at
-            """),
-            updates,
-        ).mappings().one_or_none()
+    with get_conn() as conn:
+        tx = conn.begin()
+        try:
+            try:
+                conn.exec_driver_sql("SET LOCAL statement_timeout = 8000")  # NEW
+            except Exception:
+                pass
 
-        if not row:
-            tx.rollback()
-            return {"error": "not_found"}, 404
+            row = conn.execute(
+                text(f"""
+                    UPDATE projects
+                    SET {sets}
+                    WHERE id = :pid
+                    RETURNING
+                      id, name, status, project_type, building_type, location,
+                      levels, external_wall_area, footprint_area, opening_pct,
+                      wall_to_floor_ratio, footprint_gifa, gifa_total,
+                      external_openings_area, avg_height_per_level,
+                      created_at, updated_at
+                """),
+                updates,
+            ).mappings().one_or_none()
 
-        tx.commit()
-        return jsonify({"project": _row_to_dict(row)}), 200
-    except Exception:
-        if tx.is_active: tx.rollback()
-        return {"error": "server_error"}, 500
+            if not row:
+                tx.rollback()
+                return {"error": "not_found"}, 404
+
+            tx.commit()
+            return jsonify({"project": _row_to_dict(row)}), 200
+        except Exception:
+            if tx.is_active:
+                tx.rollback()
+            return {"error": "server_error"}, 500
 
 
 @projects_bp.delete("/projects/<int:project_id>")
@@ -227,20 +251,26 @@ def delete_project(project_id: int):
     if not _decode_jwt(token):
         return {"error": "unauthorized"}, 401
 
-    conn = get_conn()
-    tx = conn.begin()
-    try:
-        row = conn.execute(
-            text("DELETE FROM projects WHERE id = :pid RETURNING id"),
-            {"pid": project_id},
-        ).mappings().one_or_none()
+    with get_conn() as conn:
+        tx = conn.begin()
+        try:
+            try:
+                conn.exec_driver_sql("SET LOCAL statement_timeout = 8000")  # NEW
+            except Exception:
+                pass
 
-        if not row:
-            tx.rollback()
-            return {"error": "not_found"}, 404
+            row = conn.execute(
+                text("DELETE FROM projects WHERE id = :pid RETURNING id"),
+                {"pid": project_id},
+            ).mappings().one_or_none()
 
-        tx.commit()
-        return jsonify({"deleted": True, "id": row["id"]}), 200
-    except Exception:
-        if tx.is_active: tx.rollback()
-        return {"error": "server_error"}, 500
+            if not row:
+                tx.rollback()
+                return {"error": "not_found"}, 404
+
+            tx.commit()
+            return jsonify({"deleted": True, "id": row["id"]}), 200
+        except Exception:
+            if tx.is_active:
+                tx.rollback()
+            return {"error": "server_error"}, 500

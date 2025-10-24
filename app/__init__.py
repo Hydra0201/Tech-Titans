@@ -54,4 +54,10 @@ def create_app():
 
 
 def get_conn():
-    return current_app.config["PG_ENGINE"].connect()
+    engine = current_app.config["PG_ENGINE"]
+    conn = engine.connect()
+    
+    if conn.in_transaction():
+        conn.rollback()
+        
+    return conn

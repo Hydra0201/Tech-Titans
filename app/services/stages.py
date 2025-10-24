@@ -1,9 +1,6 @@
-
 from typing import Any, List, Mapping
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
-from sqlalchemy import text
-from typing import List, Mapping, Any
 
 def recommendations(conn: Connection, project_id: int, limit: int = 3) -> List[Mapping[str, Any]]:
     """
@@ -12,7 +9,7 @@ def recommendations(conn: Connection, project_id: int, limit: int = 3) -> List[M
     """
     rows = conn.execute(
         text("""
-            SELECT r.intervention_id, i.name, r.theme_weighted_effectiveness
+            SELECT r.intervention_id, i.name, r.theme_weighted_effectiveness::float8 AS theme_weighted_effectiveness
             FROM runtime_scores r
             JOIN interventions i ON i.id = r.intervention_id
             WHERE r.project_id = :pid

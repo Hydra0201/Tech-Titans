@@ -3,8 +3,8 @@ from flask import Blueprint, request, jsonify, current_app, g
 from sqlalchemy import text
 from .. import get_conn
 from ..services import rules_metric, stages
-import jwt  # <-- added
 from ..services.weightings import apply_weights
+import jwt
 
 metrics_bp = Blueprint("metrics", __name__)
 
@@ -27,8 +27,6 @@ def _decode_jwt(token: str):
         return None
 # --------------------------------------------------------------------------
 
-
-# ---------- Metrics ingest + recompute ----------
 @metrics_bp.post("/projects/<int:project_id>/metrics")
 def send_metrics(project_id: int):
     # JWT required
@@ -36,6 +34,7 @@ def send_metrics(project_id: int):
     payload = _decode_jwt(token)
     if not payload:
         return {"error": "unauthorized"}, 401
+
     # Optional: expose on g for future RBAC
     g.user_id = payload.get("sub")
     g.user_role = payload.get("role")
@@ -48,7 +47,7 @@ def send_metrics(project_id: int):
 
     dry_run = parse_bool(request.args.get("dry_run"))
 
-    # ACCEPT BOTH SHAPES: {metrics:{...}} OR RAW {...}
+    # Accept both shapes: {metrics:{...}} or raw {...}
     metrics_raw = payload_json.get("metrics") if "metrics" in payload_json else payload_json
     if not isinstance(metrics_raw, dict) or not metrics_raw:
         return {"error": "bad_request", "message": "missing metrics"}, 400
@@ -56,47 +55,48 @@ def send_metrics(project_id: int):
     try:
         metrics = {str(k): float(v) for k, v in metrics_raw.items() if v is not None}
     except Exception:
-        return {
-            "error": "bad_request",
-            "message": "metrics values must be numbers"
-        }, 400
+        return {"error": "bad_request", "message": "metrics values must be numbers"}, 400
 
-    conn = get_conn()
-    # safe if a transaction is already active (e.g., in tests)
-    tx = conn.begin() if not conn.in_transaction() else conn.begin_nested()
-    try:
-        # write metrics -> recompute -> upsert scores
-        rules_metric.save_project_metrics(conn, project_id, metrics)
-        scores = rules_metric.metric_recompute(conn, project_id)
-        rules_metric.upsert_runtime_scores(conn, project_id, scores)
-        apply_weights(project_id, conn)
-
-        if dry_run:
-            tx.rollback()
-        else:
-            tx.commit()
-
-        # tiny debug signal in logs (remove if noisy)
+    # Always close the connection (context manager)
+    with get_conn() as conn:
+        # Safe if caller already opened a transaction (e.g., tests)
+        tx = conn.begin() if not conn.in_transaction() else conn.begin_nested()
         try:
-            base_count = conn.execute(text("SELECT COUNT(*) FROM interventions")).scalar_one()
-            rule_count = conn.execute(text("SELECT COUNT(*) FROM metric_effects")).scalar_one()
-            current_app.logger.info("metrics recompute: interventions=%s rules=%s updated=%s",
-                                    base_count, rule_count, len(scores))
+            # write metrics -> recompute -> upsert scores -> apply weights
+            rules_metric.save_project_metrics(conn, project_id, metrics)
+            scores = rules_metric.metric_recompute(conn, project_id)
+            rules_metric.upsert_runtime_scores(conn, project_id, scores)
+
+            # Keep theme_weighted_effectiveness in sync
+            apply_weights(project_id, conn)
+
+            if dry_run:
+                tx.rollback()
+            else:
+                tx.commit()
+
+            # Tiny debug signal in logs
+            try:
+                base_count = conn.execute(text("SELECT COUNT(*) FROM interventions")).scalar_one()
+                rule_count = conn.execute(text("SELECT COUNT(*) FROM metric_effects")).scalar_one()
+                current_app.logger.info(
+                    "metrics recompute: interventions=%s rules=%s updated=%s",
+                    base_count, rule_count, len(scores)
+                )
+            except Exception:
+                pass
+
+            return {"project_id": project_id, "updated": len(scores), "dry_run": dry_run}, 200
+
         except Exception:
-            pass
-
-        return {"project_id": project_id, "updated": len(scores), "dry_run": dry_run}, 200
-    except Exception:
-        if tx.is_active:
-            tx.rollback()
-        current_app.logger.exception("Metrics recompute failed")
-        return {"error": "Metrics recompute failed"}, 500
-
+            if tx.is_active:
+                tx.rollback()
+            current_app.logger.exception("Metrics recompute failed")
+            return {"error": "Metrics recompute failed"}, 500
 
 # ---------- Top 3 recommendations ----------
 @metrics_bp.get("/projects/<int:project_id>/recommendations")
 def get_recommendations(project_id: int):
-    # JWT required
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
@@ -110,8 +110,8 @@ def get_recommendations(project_id: int):
             rows = stages.recommendations(conn, project_id, limit=3)
             return jsonify({"recommendations": [dict(r) for r in rows]}), 200
         except Exception:
+            current_app.logger.exception("failed to get recommendations")
             return {"failed to get recommendations"}, 500
-
 
 # ---------- List a user's projects ----------
 def _fetch_user_projects(conn, user_id: int):
@@ -134,14 +134,13 @@ def _fetch_user_projects(conn, user_id: int):
 
 @metrics_bp.get("/users/<int:user_id>/projects")
 def list_user_projects(user_id: int):
-    # JWT required; allow self or Admin
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
         return {"error": "unauthorized"}, 401
     g.user_id = payload.get("sub")
     g.user_role = payload.get("role")
-    # Enforce self-access or Admin
+
     try:
         jwt_uid = int(str(g.user_id))
     except Exception:
@@ -149,20 +148,20 @@ def list_user_projects(user_id: int):
     if (jwt_uid != int(user_id)) and (g.user_role != "Admin"):
         return {"error": "forbidden"}, 403
 
-    conn = get_conn()
-    data = _fetch_user_projects(conn, user_id)
-    return {"projects": data}, 200
+    with get_conn() as conn:
+        data = _fetch_user_projects(conn, user_id)
+        return {"projects": data}, 200
 
 # Optional compatibility alias
 @metrics_bp.get("/projects/user/<int:user_id>")
 def list_user_projects_compat(user_id: int):
-    # JWT required; allow self or Admin
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
         return {"error": "unauthorized"}, 401
     g.user_id = payload.get("sub")
     g.user_role = payload.get("role")
+
     try:
         jwt_uid = int(str(g.user_id))
     except Exception:
@@ -170,6 +169,6 @@ def list_user_projects_compat(user_id: int):
     if (jwt_uid != int(user_id)) and (g.user_role != "Admin"):
         return {"error": "forbidden"}, 403
 
-    conn = get_conn()
-    data = _fetch_user_projects(conn, user_id)
-    return {"projects": data}, 200
+    with get_conn() as conn:
+        data = _fetch_user_projects(conn, user_id)
+        return {"projects": data}, 200

@@ -104,37 +104,38 @@ def create_user():
 
     pw_hash = pwd_ctx.hash(password)
 
-    conn = get_conn()
-    tx = conn.begin()
-    try:
-        row = conn.execute(
-            text("""
-                INSERT INTO users (email, name, role, default_access_level, password_hash)
-                VALUES (:email, :name, :role, :access, :hash)
-                RETURNING id, email, name, role, default_access_level, created_at
-            """),
-            {"email": email, "name": name, "role": role, "access": default_access, "hash": pw_hash},
-        ).mappings().one()
+    # ---- IMPORTANT: ensure the connection is closed with a context manager
+    with get_conn() as conn:
+        tx = conn.begin() if not conn.in_transaction() else conn.begin_nested()
+        try:
+            row = conn.execute(
+                text("""
+                    INSERT INTO users (email, name, role, default_access_level, password_hash)
+                    VALUES (:email, :name, :role, :access, :hash)
+                    RETURNING id, email, name, role, default_access_level, created_at
+                """),
+                {"email": email, "name": name, "role": role, "access": default_access, "hash": pw_hash},
+            ).mappings().one()
 
-        user = dict(row)
-        if isinstance(user.get("created_at"), datetime):
-            user["created_at"] = user["created_at"].isoformat()
+            user = dict(row)
+            if isinstance(user.get("created_at"), datetime):
+                user["created_at"] = user["created_at"].isoformat()
 
-        tx.commit()
-        return jsonify({"user": user}), 201
+            tx.commit()
+            return jsonify({"user": user}), 201
 
-    except IntegrityError as e:
-        if tx.is_active:
-            tx.rollback()
-        orig = getattr(e, "orig", None)
-        sqlstate = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
-        if isinstance(orig, UniqueViolation) or sqlstate == "23505":
-            return jsonify({"error": "email_exists"}), 409
-        current_app.logger.exception("create_user failed (integrity)")
-        return jsonify({"error": "server_error"}), 500
+        except IntegrityError as e:
+            if tx.is_active:
+                tx.rollback()
+            orig = getattr(e, "orig", None)
+            sqlstate = getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None)
+            if isinstance(orig, UniqueViolation) or sqlstate == "23505":
+                return jsonify({"error": "email_exists"}), 409
+            current_app.logger.exception("create_user failed (integrity)")
+            return jsonify({"error": "server_error"}), 500
 
-    except Exception:
-        if tx.is_active:
-            tx.rollback()
-        current_app.logger.exception("create_user failed")
-        return jsonify({"error": "server_error"}), 500
+        except Exception:
+            if tx.is_active:
+                tx.rollback()
+            current_app.logger.exception("create_user failed")
+            return jsonify({"error": "server_error"}), 500

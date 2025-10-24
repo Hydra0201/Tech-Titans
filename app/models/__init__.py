@@ -19,9 +19,9 @@ from .recommendation import Recommendation
 from .project_access import ProjectAccess
 
 # NEW — stages, implemented, app config
-from .stages import Stage, RelationTypeEnum
+from .stages import Stage
 from .implemented_intervention import ImplementedIntervention
-from .app_config import AppConfig
+from .app_config import Config as AppConfig
 
 
 def register_models():
@@ -52,7 +52,7 @@ __all__ = [
     "RuntimeScore",
     "Recommendation",
     "ProjectAccess",
-    "Stage", "RelationTypeEnum",
+    "Stage",
     "ImplementedIntervention",
     "AppConfig",
     "register_models",
