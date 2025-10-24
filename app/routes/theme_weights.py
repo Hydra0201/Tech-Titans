@@ -51,8 +51,11 @@ def list_themes():
 
 # ---------- Get project theme scores ----------
 @theme_weights_bp.get("/projects/<int:project_id>/themes")
-@theme_weights_bp.get("/projects/<int:project_id>/theme-scores")  # alias
+@theme_weights_bp.get("/projects/<int:project_id>/theme-scores")  # alias for convenience/tests
 def get_project_theme_weightings(project_id: int):
+    """Return all themes with any saved scores for this project (LEFT JOIN).
+    weight_raw/weight_norm are null if not saved.
+    """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
@@ -96,10 +99,39 @@ def get_project_theme_weightings(project_id: int):
 
         return jsonify({
             "project_id": project_id,
-            "themes": items,
+            "themes": items,  # includes weights for UI/logic
         }), 200
 
+
 # ---------- Save project theme scores ----------
+    rows = conn.execute(
+        text("""
+            SELECT
+                t.id   AS id,
+                t.name AS name
+            FROM themes AS t
+            LEFT JOIN project_theme_weightings AS pts
+              ON pts.theme_id = t.id AND pts.project_id = :pid
+            ORDER BY t.id
+        """),
+        {"pid": project_id},
+    ).mappings().all()
+
+    items = [
+        {
+            "id": r["id"],
+            "name": r["name"],
+        }
+        for r in rows
+    ]
+
+    return jsonify({
+        "project_id": project_id,
+        "themes": items,   # UI uses this
+    }), 200
+
+
+# Accept both PUT (preferred) and POST (compat) for a full save
 @theme_weights_bp.put("/projects/<int:project_id>/theme-scores")
 @theme_weights_bp.post("/projects/<int:project_id>/themes")
 def upsert_project_theme_weightings(project_id: int):

@@ -40,3 +40,4 @@ nav:
   - Archtecture:
     - "Design Philosophy": architecture/philosophy.md
     - "Overview": architecture/overview.md
+    - "Scoring": architecture/scoring.md
