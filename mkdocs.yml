@@ -2,6 +2,9 @@ site_name: CarbonBalance Docs
 theme:
   name: material
 
+extra_css:
+  - styles/mermaid.css
+
 markdown_extensions:
 - pymdownx.superfences
 - pymdownx.details
@@ -35,9 +38,27 @@ plugins:
 
 nav:
   - Home: index.md
-  - API:
-      - "API Reference": api.md
-  - Archtecture:
+  - Reference:
+      - API:
+          - Projects: reference/api/projects.md
+          - Interventions: reference/api/interventions.md
+          - Building Metrics: reference/api/building_metrics.md
+          - Theme Weights: reference/api/theme_weights.md
+          - Admin Users: reference/api/admin_users.md
+          - Graphs: reference/api/graphs.md
+          - Costing: reference/api/costing.md
+          - Ingestion: reference/api/ingestion.md
+      - Services:
+          - Rules (Metric): reference/services/rules_metric.md
+          - Rules (Intervention): reference/services/rules_intervention.md
+          - Stages: reference/services/stages.md
+          - Weightings: reference/services/weightings.md
+          - Report: reference/services/report.md
+          - Data Ingestion: reference/services/data_ingestion.md
+  - Architecture:
     - "Design Philosophy": architecture/philosophy.md
     - "Overview": architecture/overview.md
     - "Scoring": architecture/scoring.md
+  - About:
+    - "Extensions": about/extensions.md
+    - "Improvements": about/improvements.md

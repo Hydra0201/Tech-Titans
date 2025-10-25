@@ -29,6 +29,24 @@ def _decode_jwt(token: str):
 
 @metrics_bp.post("/projects/<int:project_id>/metrics")
 def send_metrics(project_id: int):
+    """
+    POST /projects/{project_id}/metrics - save metrics and recompute scores.
+
+    Auth: Bearer JWT required.
+
+    Request (JSON):
+      - Either: {"metrics": {<str>: <number>, ...}} or raw {"<str>": <number>, ...}
+      - Values must be numeric; nulls are ignored.
+
+    Query:
+      - dry_run (bool, optional) - if true, validate/compute but roll back.
+
+    Responses:
+      - 200: {"project_id": <int>, "updated": <int>, "dry_run": <bool>}
+      - 400: {"error":"bad_request", "message": "..."} (missing/invalid metrics)
+      - 401: {"error":"unauthorized"}
+      - 500: {"error":"Metrics recompute failed"}
+    """
     # JWT required
     token = _get_bearer_token()
     payload = _decode_jwt(token)
@@ -47,7 +65,6 @@ def send_metrics(project_id: int):
 
     dry_run = parse_bool(request.args.get("dry_run"))
 
-    # Accept both shapes: {metrics:{...}} or raw {...}
     metrics_raw = payload_json.get("metrics") if "metrics" in payload_json else payload_json
     if not isinstance(metrics_raw, dict) or not metrics_raw:
         return {"error": "bad_request", "message": "missing metrics"}, 400
@@ -57,9 +74,7 @@ def send_metrics(project_id: int):
     except Exception:
         return {"error": "bad_request", "message": "metrics values must be numbers"}, 400
 
-    # Always close the connection (context manager)
     with get_conn() as conn:
-        # Safe if caller already opened a transaction (e.g., tests)
         tx = conn.begin() if not conn.in_transaction() else conn.begin_nested()
         try:
             # write metrics -> recompute -> upsert scores -> apply weights
@@ -75,7 +90,6 @@ def send_metrics(project_id: int):
             else:
                 tx.commit()
 
-            # Tiny debug signal in logs
             try:
                 base_count = conn.execute(text("SELECT COUNT(*) FROM interventions")).scalar_one()
                 rule_count = conn.execute(text("SELECT COUNT(*) FROM metric_effects")).scalar_one()
@@ -97,6 +111,16 @@ def send_metrics(project_id: int):
 # ---------- Top 3 recommendations ----------
 @metrics_bp.get("/projects/<int:project_id>/recommendations")
 def get_recommendations(project_id: int):
+    """
+    GET /projects/{project_id}/recommendations - top 3 recommendations.
+
+    Auth: Bearer JWT required.
+
+    Responses:
+      - 200: {"recommendations": [ { ... }, { ... }, { ... } ]}
+      - 401: {"error":"unauthorized"}
+      - 500: {"failed to get recommendations"}
+    """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
@@ -134,6 +158,20 @@ def _fetch_user_projects(conn, user_id: int):
 
 @metrics_bp.get("/users/<int:user_id>/projects")
 def list_user_projects(user_id: int):
+    """
+    GET /users/{user_id}/projects - list projects owned by a user.
+
+    Auth: Bearer JWT required. Caller must be the same user or have role=Admin.
+
+    Responses:
+      - 200: {"projects": [ {id, name, status, project_type, building_type, location,
+                             levels, external_wall_area, footprint_area, opening_pct,
+                             wall_to_floor_ratio, footprint_gifa, gifa_total,
+                             external_openings_area, avg_height_per_level,
+                             created_at, updated_at}, ... ]}
+      - 401: {"error":"unauthorized"}
+      - 403: {"error":"forbidden"}
+    """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
@@ -152,9 +190,14 @@ def list_user_projects(user_id: int):
         data = _fetch_user_projects(conn, user_id)
         return {"projects": data}, 200
 
-# Optional compatibility alias
+
 @metrics_bp.get("/projects/user/<int:user_id>")
 def list_user_projects_compat(user_id: int):
+    """
+    GET /projects/user/{user_id} — compatibility alias for /users/{user_id}/projects.
+
+    Auth & Responses: same as GET /users/{user_id}/projects.
+    """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:

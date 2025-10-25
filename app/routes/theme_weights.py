@@ -39,6 +39,15 @@ def _require_editor_access(conn, project_id: int) -> bool:
 # ---------- List all themes ----------
 @theme_weights_bp.get("/themes")
 def list_themes():
+    """
+    GET /api/themes -- list all themes.
+
+    Auth: Bearer JWT required.
+
+    Responses:
+      - 200: {"themes": [ {id, name, description}, ... ]}
+      - 401: {"error":"unauthorized"}
+    """
     token = _get_bearer_token()
     if not _decode_jwt(token):
         return {"error": "unauthorized"}, 401
@@ -53,8 +62,23 @@ def list_themes():
 @theme_weights_bp.get("/projects/<int:project_id>/themes")
 @theme_weights_bp.get("/projects/<int:project_id>/theme-scores")  # alias for convenience/tests
 def get_project_theme_weightings(project_id: int):
-    """Return all themes with any saved scores for this project (LEFT JOIN).
-    weight_raw/weight_norm are null if not saved.
+    """
+    GET /api/projects/{project_id}/themes -- themes with saved weights (LEFT JOIN).
+
+    Auth: Bearer JWT required.
+
+    Description:
+      Returns every theme plus any saved `weight_raw`/`weight_norm` for the project.
+      (Alias: `/api/projects/{project_id}/theme-scores`.)
+
+    Responses:
+      - 200: {
+          "project_id": int,
+          "themes": [ {id, name, weight_raw: float|null, weight_norm: float|null}, ... ],
+          "weights": [ ... ]  # same as "themes" (compat)
+        }
+      - 401: {"error":"unauthorized"}
+      - 404: {"error":"not_found","message":"project not found"}
     """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
@@ -63,10 +87,6 @@ def get_project_theme_weightings(project_id: int):
     g.user_id = payload.get("sub")
     g.user_role = payload.get("role")
 
-    """
-    Return ALL themes with any saved scores for this project (LEFT JOIN).
-    weight_raw/weight_norm are null if not saved.
-    """
     conn = get_conn()
 
     proj = conn.execute(
@@ -107,10 +127,37 @@ def get_project_theme_weightings(project_id: int):
     }), 200
 
 
-# Accept both PUT (preferred) and POST (compat) for a full save
 @theme_weights_bp.put("/projects/<int:project_id>/theme-scores")
 @theme_weights_bp.post("/projects/<int:project_id>/themes")
 def upsert_project_theme_weightings(project_id: int):
+    """
+    PUT /api/projects/{project_id}/theme-scores -- save theme weights.
+    (Alias: POST /api/projects/{project_id}/themes)
+
+    Auth: Bearer JWT required.
+
+    Request (JSON):
+      - weights (object, required): { "<theme_id>": <number>, ... }
+        • values must be >= 0; will be normalised to sum to 1.0
+
+    Query:
+      - dry_run (bool, optional) -- validate/preview without persisting
+
+    Responses:
+      - 200: {
+          "project_id": int,
+          "dry_run": bool,
+          "updated": int,                  
+          "sum_raw": float,
+          "sum_norm": float,            
+          "normalized": { "<theme_id>": float, ... },
+          "scores_weighted_updated": int    
+        }
+      - 400: {"error":"bad_request","message":"..."}
+      - 401: {"error":"unauthorized"}
+      - 404: {"error":"not_found","message":"project not found"}
+      - 500: {"error":"server_error"}
+    """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:

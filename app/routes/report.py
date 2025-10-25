@@ -7,6 +7,13 @@ report_bp = Blueprint("report", __name__)
 
 @report_bp.get("/projects/<int:project_id>/implemented-with-scores")
 def get_implemented(project_id: int):
+    """
+    GET /projects/{project_id}/implemented-with-scores -- implemented interventions + scores.
+
+    Responses:
+      - 200: {"project_id": int, "implemented_interventions": [ {...}, ... ]}
+      - 500: {"error":"failed to generate implemented intervention output"}
+    """
     try:
         with get_conn() as conn:
             implemented = report_service.implemented(conn, project_id)
@@ -21,6 +28,16 @@ def get_implemented(project_id: int):
 
 @report_bp.get("/projects/<int:project_id>/report.html")
 def report_html(project_id: int):
+    """
+    GET /projects/{project_id}/report.html -- HTML report.
+
+    Description:
+      Renders a project report (implemented interventions + embedded graph SVG).
+
+    Responses:
+      - 200: text/html
+      - 500: template/render failures propagate as 500
+    """
     with get_conn() as conn:
         implemented = report_service.implemented(conn, project_id)
 
@@ -36,6 +53,16 @@ def report_html(project_id: int):
 
 @report_bp.get("/projects/<int:project_id>/report.pdf")
 def report_pdf(project_id: int):
+    """
+    GET /projects/{project_id}/report.pdf -- PDF report.
+
+    Description:
+      Renders the same content as the HTML report and converts it to PDF.
+
+    Responses:
+      - 200: application/pdf
+      - 500: HTML/PDF generation failure
+    """
 
     with get_conn() as conn:
         implemented = report_service.implemented(conn, project_id)

@@ -29,7 +29,7 @@ To run the tests, run `pytest` in console. If this doesn't work, first do `pip i
 
 ## Documentation
 
-Documentation for the contents of app/services/ can be found on the mkdocs page. Run `mkdocs serve` from the top level directory.
+Run `mkdocs serve` from the top level directory.
 
 ## Getting Help
 

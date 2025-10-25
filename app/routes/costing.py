@@ -28,7 +28,19 @@ def _decode_jwt(token: str):
 
 @costs.get("/projects/<int:project_id>/costs")
 def get_costs(project_id: int):
-    # JWT required (no role/ownership check to avoid changing behavior)
+    """
+    GET /projects/{project_id}/costs - return cost token estimate.
+
+    Auth: Bearer JWT required.
+
+    Description:
+      Computes the project's current cost level as an integer number of cost tokens
+
+    Responses:
+      - 200: {"project_id": <int>, "cost_tokens": <int>}
+      - 401: {"error":"unauthorized"}
+      - 500: {"error":"failed to calc cost tokens"}
+    """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:

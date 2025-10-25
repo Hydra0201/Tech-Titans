@@ -29,9 +29,26 @@ def _decode_jwt(token: str):
 
 @ingestion_bp.post("/ingest")
 def ingest():
+    """
+    POST /ingest - upsert reference data from Excel (Admin only).
 
+    Auth: Bearer JWT with role=Admin.
 
-    # JWT
+    Description:
+      Reads the configured Excel workbook (themes, interventions, stages,
+      metric_effects, intervention_effects) and upserts records by *name*.
+
+    Request: (no body) - uses server-side EXCEL_PATH.
+
+    Responses:
+      - 200: {"ok": true, "details": { "themes": {...}, "interventions": {...},
+                                       "stages": {...}, "metric_effects": {...},
+                                       "intervention_effects": {...} }}
+      - 401: {"error":"unauthorized"}
+      - 403: {"error":"forbidden"}
+      - 500: {"error": "...", "trace": "...", "details": {...}}
+    """
+
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
@@ -78,6 +95,20 @@ def ingest():
 
 @ingestion_bp.delete("/clear_db")
 def clear():
+    """
+    DELETE /clear_db - remove all reference/runtime data (Admin only).
+
+    Auth: Bearer JWT with role=Admin.
+
+    Description:
+      Clears themes, interventions, effects, stages, runtime scores, and related tables.
+
+    Responses:
+      - 200: {"ok": true}
+      - 401: {"error":"unauthorized"}
+      - 403: {"error":"forbidden"}
+      - 500: {"error":"failed_to_clear"}
+    """
 
     token = _get_bearer_token()
     payload = _decode_jwt(token)

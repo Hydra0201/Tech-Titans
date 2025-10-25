@@ -46,21 +46,45 @@ def _intervention_exists(conn, intervention_id: int) -> bool:
     ).scalar_one_or_none() is not None
 
 # --- routes ----------------------------------------------------------------
-@interventions_bp.get("/hello")
-def get_health():
-    with get_conn() as conn:
-        row = conn.execute(text("SELECT 1 AS ok")).one()
-        return {"ok": row.ok}, 200
-
 
 @interventions_bp.post("/projects/<int:project_id>/apply")
 def apply_intervention(project_id: int):
+    """
+    POST /projects/{project_id}/apply - apply one intervention.
+
+    Auth: Bearer JWT required.
+
+    Request (JSON):
+      - intervention_id (int, required)
+
+    Query:
+      - dry_run (bool, optional) - validate/compute without persisting
+      - decay (bool, optional) - apply decay after recompute
+      - alpha (float, optional, default 0.6) - decay factor
+      - floor (float, optional, default 0.0) - lower bound for decay
+
+    Responses:
+      - 200: {
+          "project_id": int,
+          "cause_intervention_id": int,
+          "updated": int,
+          "new_scores": { "<intervention_id>": <score>, ... },
+          "dry_run": bool,
+          "insert_attempted": bool,
+          "insert_returned_row": bool,
+          "verified_persisted": bool,
+          "decay_applied": bool,
+          "decay_params": {"alpha": float, "floor": float} | null
+        }
+      - 401: {"error":"unauthorized"}
+      - 404: {"error":"not_found", "message": "..."}
+      - 500: {"error":"server_error"}
+    """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
         return {"error": "unauthorized"}, 401
 
-    # coerce user id (FK-friendly)
     try:
         g.user_id = int(str(payload.get("sub"))) if payload.get("sub") is not None else None
     except Exception:
@@ -169,13 +193,29 @@ def apply_intervention(project_id: int):
 @interventions_bp.post("/projects/<int:project_id>/apply-batch")
 def apply_interventions_batch(project_id: int):
     """
-    Apply multiple interventions at once.
-    Body: { "intervention_ids": [1, 5, 7] }
-    Query: ?dry_run=1 (optional)
-    
-    Returns next_recommendations automatically for seamless loop.
+    POST /projects/{project_id}/apply-batch - apply multiple interventions.
+
+    Auth: Bearer JWT required.
+
+    Request (JSON):
+      - intervention_ids (list[int], required)
+
+    Query:
+      - dry_run (bool, optional) - if true, no inserts/recompute
+
+    Responses:
+      - 200: {
+          "project_id": int,
+          "applied_count": int,
+          "intervention_ids": [int, ...],
+          "dry_run": bool,
+          "next_recommendations": [ { ... up to 3 ... } ],
+          "has_more": bool
+        }
+      - 400: {"error":"bad_request", "message":"..."}
+      - 401: {"error":"unauthorized"}
+      - 404: {"error":"not_found", "message":"..."}
     """
-    # Auth
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
@@ -212,11 +252,9 @@ def apply_interventions_batch(project_id: int):
     applied_count = 0
     
     if not dry_run:
-        # Use individual connections that auto-commit
         for iid in intervention_ids:
             with get_conn() as conn:
                 try:
-                    # Force autocommit for this connection
                     conn.exec_driver_sql("COMMIT")
                     
                     result = conn.execute(
@@ -231,7 +269,6 @@ def apply_interventions_batch(project_id: int):
                     
                     if result:
                         applied_count += 1
-                        # Force immediate commit
                         conn.exec_driver_sql("COMMIT")
                         
                 except Exception as e:
@@ -277,8 +314,27 @@ def apply_interventions_batch(project_id: int):
 @interventions_bp.get("/projects/<int:project_id>/implemented")
 def get_implemented_interventions(project_id: int):
     """
-    Get all implemented interventions for a project.
-    Useful for debugging and later for the report page.
+    GET /projects/{project_id}/implemented - list implemented interventions.
+
+    Auth: Bearer JWT required.
+
+    Responses:
+      - 200: {
+          "project_id": int,
+          "total_count": int,
+          "interventions": [
+            {
+              "intervention_id": int,
+              "name": str,
+              "description": str | null,
+              "theme_name": str | null,
+              "implemented_at": str,          # ISO-8601
+              "implemented_by_email": str | null
+            }, ...
+          ]
+        }
+      - 401: {"error":"unauthorized"}
+      - 404: {"error":"not_found", "message":"project not found"}
     """
     token = _get_bearer_token()
     payload = _decode_jwt(token)

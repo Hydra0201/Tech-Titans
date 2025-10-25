@@ -1,4 +1,3 @@
-# app/routes/admin_users.py
 from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app, g
 from passlib.context import CryptContext
@@ -6,7 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from psycopg.errors import UniqueViolation
 import re
-import jwt  # <-- added
+import jwt
 
 from .. import get_conn
 
@@ -16,7 +15,6 @@ pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALLOWED_ROLES = {"Admin", "Employee", "Client", "Consultant"}
 ALLOWED_ACCESS = {"view", "edit"}
 
-# Simple, strict-enough email regex
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$", re.I)
 
 def _clean_email(v: str | None) -> str:
@@ -27,7 +25,6 @@ def _norm_role(v: str | None) -> str:
     return (v[:1].upper() + v[1:].lower()) if v else ""
 
 def _norm_access(v: str | None) -> str:
-    # default MUST be 'view' (not 'viewer')
     return (v or "view").strip().lower()
 
 def _get_bearer_token() -> str | None:
@@ -73,7 +70,7 @@ def create_user():
     role = payload.get("role")
     if role != "Admin":
         return jsonify({"error": "forbidden"}), 403
-    # (Optional) expose user info to handler if you need it later
+
     g.user_id = payload.get("sub")
     g.user_role = role
     g.user_email = payload.get("email")
@@ -104,7 +101,6 @@ def create_user():
 
     pw_hash = pwd_ctx.hash(password)
 
-    # ---- IMPORTANT: ensure the connection is closed with a context manager
     with get_conn() as conn:
         tx = conn.begin() if not conn.in_transaction() else conn.begin_nested()
         try:

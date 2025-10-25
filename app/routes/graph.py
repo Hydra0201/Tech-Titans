@@ -54,6 +54,23 @@ GRAPH_SQL = text("""
 
 @graphs_bp.get("/projects/<int:project_id>/graph")
 def project_graph(project_id: int):
+    """
+    GET /projects/{project_id}/graph - graph data (JSON).
+
+    Description:
+      Returns the top-N interventions (by theme_weighted_effectiveness) and the
+      edges between them derived from intervention_effects.
+
+    Params (fixed defaults):
+      - top_n = 30
+      - epsilon = 0.05
+
+    Responses:
+      - 200: {"project_id": <int>, "params": {"top_n": 30, "epsilon": 0.05},
+              "nodes": [{"id": <int>, "label": <str>, "score": <float>}, ...],
+              "edges": [{"src": <int>, "dst": <int>, "weight": <float>, "multiplier": <float>}, ...]}
+      - 400: {"error": "Invalid top_n or epsilon"}
+    """
 
     try:
         top_n = 30
@@ -84,6 +101,17 @@ def project_graph(project_id: int):
 
 
 def _svg_from_nodes_edges(nodes, edges, title="Intervention Graph"):
+    """
+    Build an SVG for the intervention graph.
+
+    Args:
+      - nodes: [{"id": int, "label": str, "score": float}, ...]
+      - edges: [{"src": int, "dst": int, "weight": float, "multiplier": float}, ...]
+      - title: diagram title
+
+    Returns:
+      - bytes: SVG payload
+    """
     g = Digraph("G", format="svg")
     g.attr(rankdir="LR", labelloc="t", label=title, fontsize="18", fontname="Inter")
     g.attr("graph", bgcolor="white", margin="0.2")
@@ -124,6 +152,16 @@ def _svg_from_nodes_edges(nodes, edges, title="Intervention Graph"):
 
 @graphs_bp.get("/projects/<int:project_id>/graph.svg")
 def project_graph_svg(project_id: int):
+    """
+    GET /projects/{project_id}/graph.svg - graph as SVG.
+
+    Query:
+      - top_n (int, optional, default 30)
+      - epsilon is fixed at 0.05 in this endpoint.
+
+    Responses:
+      - 200: SVG diagram
+    """
     top_n = int(request.args.get("top_n", 30))
     epsilon = 0.05
     with get_conn() as conn:

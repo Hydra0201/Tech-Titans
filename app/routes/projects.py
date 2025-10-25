@@ -78,7 +78,30 @@ def _row_to_dict(row) -> dict:
 # --- routes --------------------------------------------------
 @projects_bp.post("/projects")
 def create_project():
-    # JWT required; extract owner from token
+    """
+    POST /projects — create a project.
+
+    Auth: Bearer JWT required (owner inferred from token `sub`).
+
+    Request (JSON):
+      - name (str, required)
+      - Optional fields (trimmed/typed): {
+          status, project_type, building_type, location,
+          levels, external_wall_area, footprint_area, opening_pct,
+          wall_to_floor_ratio, footprint_gifa, gifa_total,
+          external_openings_area, avg_height_per_level
+        }
+
+    Notes:
+      - If any numeric fields are provided, a post-create recompute is run
+        (save metrics → recompute → upsert runtime_scores → apply theme weights).
+
+    Responses:
+      - 201: {"project": {...}}  # full project record
+      - 400: {"error":"bad_request", "message":"name is required"}
+      - 401: {"error":"unauthorized"}
+      - 500: {"error":"server_error"}
+    """
     token = _get_bearer_token()
     payload = _decode_jwt(token)
     if not payload:
@@ -115,11 +138,9 @@ def create_project():
           owner_user_id, created_at, updated_at
     """
 
-    # Use context manager so connection returns to pool promptly
     with get_conn() as conn:
         tx = conn.begin()
         try:
-            # Defensive per-request timeout (harmless if unsupported)  # NEW
             try:
                 conn.exec_driver_sql("SET LOCAL statement_timeout = 8000")
             except Exception:
@@ -128,7 +149,6 @@ def create_project():
             row = conn.execute(text(sql), params).mappings().one()
             tx.commit()
 
-            # OPTIONAL: if numeric fields were provided at create-time,
             # run the scoring pipeline immediately so runtime_scores is populated
             project_id = int(row["id"])
             metrics_in_body = {
@@ -139,7 +159,6 @@ def create_project():
                 with get_conn() as conn2:
                     tx2 = conn2.begin() if not conn2.in_transaction() else conn2.begin_nested()
                     try:
-                        # Defensive timeout here too                                  # NEW
                         try:
                             conn2.exec_driver_sql("SET LOCAL statement_timeout = 8000")
                         except Exception:
@@ -148,7 +167,7 @@ def create_project():
                         rules_metric.save_project_metrics(conn2, project_id, metrics_in_body)
                         scores = rules_metric.metric_recompute(conn2, project_id)
                         rules_metric.upsert_runtime_scores(conn2, project_id, scores)
-                        # Make theme-weighted values current right away                 # NEW
+                        # Make theme-weighted values current right away
                         try:
                             apply_weights(project_id, conn2)
                         except Exception:
@@ -168,7 +187,16 @@ def create_project():
 
 @projects_bp.get("/projects/<int:project_id>")
 def get_project(project_id: int):
-    # JWT required (no behavior change beyond auth)
+    """
+    GET /projects/{project_id} -- fetch a project.
+
+    Auth: Bearer JWT required.
+
+    Responses:
+      - 200: {"project": {...}}
+      - 401: {"error":"unauthorized"}
+      - 404: {"error":"not_found"}
+    """
     token = _get_bearer_token()
     if not _decode_jwt(token):
         return {"error": "unauthorized"}, 401
@@ -195,7 +223,24 @@ def get_project(project_id: int):
 
 @projects_bp.patch("/projects/<int:project_id>")
 def patch_project(project_id: int):
-    # JWT required
+    """
+    PATCH /projects/{project_id} -- update allowed fields.
+
+    Auth: Bearer JWT required.
+
+    Allowed fields:
+      - Strings: name, status, project_type, building_type, location
+      - Numbers: levels, external_wall_area, footprint_area, opening_pct,
+                 wall_to_floor_ratio, footprint_gifa, gifa_total,
+                 external_openings_area, avg_height_per_level
+
+    Responses:
+      - 200: {"project": {...}}
+      - 400: {"error":"bad_request","message":"no valid fields"}
+      - 401: {"error":"unauthorized"}
+      - 404: {"error":"not_found"}
+      - 500: {"error":"server_error"}
+    """
     token = _get_bearer_token()
     if not _decode_jwt(token):
         return {"error": "unauthorized"}, 401
@@ -246,7 +291,17 @@ def patch_project(project_id: int):
 
 @projects_bp.delete("/projects/<int:project_id>")
 def delete_project(project_id: int):
-    # JWT required
+    """
+    DELETE /projects/{project_id} -- remove a project.
+
+    Auth: Bearer JWT required.
+
+    Responses:
+      - 200: {"deleted": true, "id": <int>}
+      - 401: {"error":"unauthorized"}
+      - 404: {"error":"not_found"}
+      - 500: {"error":"server_error"}
+    """
     token = _get_bearer_token()
     if not _decode_jwt(token):
         return {"error": "unauthorized"}, 401
