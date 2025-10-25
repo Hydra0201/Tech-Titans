@@ -5,7 +5,7 @@ from weasyprint import HTML
 
 report_bp = Blueprint("report", __name__)
 
-@report_bp.get("/projects/<int:project_id>/implemented")
+@report_bp.get("/projects/<int:project_id>/implemented-with-scores")
 def get_implemented(project_id: int):
     try:
         with get_conn() as conn:

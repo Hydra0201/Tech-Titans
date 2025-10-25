@@ -48,7 +48,7 @@ def create_app():
     app.register_blueprint(admin_users_bp, url_prefix="/api")
     app.register_blueprint(ingestion_bp, url_prefix="/api")
     app.register_blueprint(report_bp, url_prefix="/api")
-    app.register_blueprint(graphs_bp)
+    app.register_blueprint(graphs_bp, url_prefix="/api")
 
     return app
 

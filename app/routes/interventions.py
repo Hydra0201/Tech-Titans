@@ -189,8 +189,6 @@ def apply_interventions_batch(project_id: int):
     data = request.get_json(silent=True) or {}
     intervention_ids = data.get("intervention_ids", [])
     
-    print(f"🔍 DEBUG START: project_id={project_id}, user_id={g.user_id}, interventions={intervention_ids}")
-    
     if not isinstance(intervention_ids, list) or not intervention_ids:
         return {"error": "bad_request", "message": "intervention_ids (array) required"}, 400
     
@@ -200,27 +198,26 @@ def apply_interventions_batch(project_id: int):
         return {"error": "bad_request", "message": "intervention_ids must be integers"}, 400
     
     dry_run = _parse_bool(request.args.get("dry_run"))
-    print(f"🔍 DEBUG: dry_run={dry_run}")
     
-    # FIRST: Check what's in the table BEFORE we start
-    with get_conn() as pre_conn:
-        pre_existing = pre_conn.execute(
-            text("SELECT impl_id FROM implemented_interventions WHERE project_id = :pid"),
-            {"pid": project_id}
-        ).scalars().all()
-        print(f"🔍 DEBUG: Pre-existing interventions for project {project_id}: {pre_existing}")
+    with get_conn() as conn:
+        # Validate project exists
+        if not _project_exists(conn, project_id):
+            return {"error": "not_found", "message": "project not found"}, 404
+    
+        # Validate all interventions exist
+        for iid in intervention_ids:
+            if not _intervention_exists(conn, iid):
+                return {"error": "not_found", "message": f"intervention {iid} not found"}, 404
     
     applied_count = 0
     
     if not dry_run:
-        # 🚨 ULTIMATE FIX: Use individual connections that AUTO-COMMIT
-        print(f"🔄 DEBUG: Starting individual inserts with auto-commit...")
-        
+        # Use individual connections that auto-commit
         for iid in intervention_ids:
             with get_conn() as conn:
                 try:
-                    # 🚨 CRITICAL: Force autocommit for this connection
-                    conn.exec_driver_sql("COMMIT")  # Ensure any previous transaction is cleared
+                    # Force autocommit for this connection
+                    conn.exec_driver_sql("COMMIT")
                     
                     result = conn.execute(
                         text("""
@@ -233,76 +230,40 @@ def apply_interventions_batch(project_id: int):
                     ).fetchone()
                     
                     if result:
-                        print(f"✅ DEBUG: SUCCESSFULLY inserted - project: {result[0]}, intervention: {result[1]}, user: {result[2]}")
                         applied_count += 1
-                        
-                        # 🚨 CRITICAL: Force immediate commit
+                        # Force immediate commit
                         conn.exec_driver_sql("COMMIT")
-                    else:
-                        print(f"⚠️ DEBUG: INSERT CONFLICT for intervention {iid}")
                         
                 except Exception as e:
-                    print(f"❌ DEBUG: Insert failed for {iid}: {e}")
+                    current_app.logger.exception(f"Insert failed for intervention {iid}")
         
-        print(f"🔍 DEBUG: Total applied count: {applied_count}")
-        
-        # 🚨 FIX: Do recomputes in a separate connection
+        # Do recomputes in a separate connection
         if applied_count > 0:
             with get_conn() as compute_conn:
-                compute_conn.exec_driver_sql("COMMIT")  # Clear any transactions
+                compute_conn.exec_driver_sql("COMMIT")
                 
                 for iid in intervention_ids:
-                    print(f"🔄 DEBUG: Recomputing for intervention {iid}")
                     try:
-                        new_scores = intervention_recompute(compute_conn, project_id, iid)
-                        print(f"🔍 DEBUG: Recompute updated {len(new_scores)} metrics")
+                        intervention_recompute(compute_conn, project_id, iid)
                     except Exception as e:
-                        print(f"⚠️ DEBUG: Recompute failed for {iid}: {e}")
+                        current_app.logger.exception(f"Recompute failed for intervention {iid}")
                 
                 # Refresh theme-weighted effectiveness
                 try:
-                    print("🔄 DEBUG: Applying weights...")
                     apply_weights(project_id, compute_conn)
-                    print("✅ DEBUG: Weights applied successfully")
-                    compute_conn.exec_driver_sql("COMMIT")  # Commit the weight changes
-                except Exception as e:
+                    compute_conn.exec_driver_sql("COMMIT")
+                except Exception:
                     current_app.logger.exception("apply_weights failed (non-fatal)")
-                    print(f"⚠️ DEBUG: apply_weights failed: {e}")
-    
-    # CRITICAL: Check if data actually persisted
-    with get_conn() as post_conn:
-        post_existing = post_conn.execute(
-            text("SELECT impl_id FROM implemented_interventions WHERE project_id = :pid"),
-            {"pid": project_id}
-        ).scalars().all()
-        print(f"🔍 DEBUG: Post-operation interventions for project {project_id}: {post_existing}")
-        
-        if set(intervention_ids).issubset(set(post_existing)):
-            print("🎉 DEBUG: SUCCESS - Interventions are properly persisted!")
-        else:
-            print(f"❌ DEBUG: FAILURE - Interventions NOT persisted. Expected: {intervention_ids}, Got: {post_existing}")
     
     # Get fresh recommendations
     with get_conn() as conn2:
         try:
             from ..services.stages import recommendations
             next_recs = recommendations(conn2, project_id, limit=3)
-            print(f"✅ DEBUG: Got {len(next_recs)} new recommendations")
-            
-            # Check if our applied interventions are excluded
-            rec_ids = {r['intervention_id'] for r in next_recs}
-            still_recommended = set(intervention_ids) & rec_ids
-            if still_recommended:
-                print(f"⚠️ DEBUG: Applied interventions still in recommendations: {still_recommended}")
-            else:
-                print("✅ DEBUG: Applied interventions properly excluded from recommendations")
-                
-        except Exception as e:
+        except Exception:
             current_app.logger.exception("Failed to get next recommendations")
-            print(f"❌ DEBUG: Failed to get recommendations: {e}")
             next_recs = []
     
-    print(f"📤 DEBUG: Sending final response")
     return jsonify({
         "project_id": project_id,
         "applied_count": applied_count,
