@@ -19,6 +19,8 @@ When a user creates a new project in order to receieve intervention recommendati
 | 5   | Basement Area : GIFA            | Remove basement                  | 0.05        | 0.09        | 0.7        |
 | 6   | Basement Area : GIFA            | Remove basement                  | 0.10        | 0.15        | 0.9        |
 
+### Effect Table
+
 The rule row with id 1 states that if a Basement Area : GIFA ratio is >= 0.5, the "Remove basement" intervention's base effectiveness will be multiplied by 1.5 to determine its runtime score. Each of these multiplier values corresponds to the scheme set out in the following table:
 <table>
   <tr>
@@ -60,4 +62,50 @@ $\text{Renewable Energy Supply} = \frac{4}{total} = \frac{4}{12} = 0.33$
 Now we apply these weighting multipliers to each of the interventions contained in these themes. E.g., every intervention in "Reducing Operational Carbon" will be multiplied by $0.25$.
 
 **Diminishing returns:**
-To avoid the problem where a high weighting causes interventions from one theme to entire dominate the recommendations, we apply a decay function which reducing a weighting by some $n\%$ when an intervention from that theme is selected.
+If a user assigns a high weighting to a single theme (e.g. Reducing Embodied Carbon = 0.7), that theme would otherwise dominate the recommendation rankings. To prevent the system from repeatedly suggesting interventions from only one theme, diminishing returns are used.
+
+Each time the user selects an intervention from a theme, that theme’s influence is temporarily reduced by applying a decay function to its weighting. This simulates preference satisfaction: after choosing one intervention from a theme, it becomes slightly less urgent to see more suggestions from that same theme immediately.
+
+The decay is multiplicative:
+
+$$w_\text{new} = max(floor, w_\text{raw} \times \alpha)$$
+
+Where:
+- $w_\text{raw}$ is the unnormalise theme weight
+- $\alpha$ is a retention factor ($0 \leq \alpha \leq 1)
+  - E.g., $\alpha = 0.6$ keeps 60% of the weight after a selection
+- `floor` ensures no theme ever fully disappears from consideration.
+
+After decaying the theme weight, all themes are **renormalised** so that they still represent a probability-like distribution summing to 1.
+
+### Example
+
+| Theme                       | Raw Weight (Before) | Raw Weight (After 1 Selection, α=0.6) |
+| --------------------------- | ------------------- | ------------------------------------- |
+| Reducing Embodied Carbon    | 5                   | 3 *(→ decayed)*                       |
+| Reducing Operational Carbon | 3                   | 3                                     |
+| Renewable Energy Supply     | 2                   | 2                                     |
+
+In this selection, the relative influence of *Reducing Embodied Carbon* is reduced, which encourages variety and balance in further recommendations.
+
+## Intervention Dependency Effects
+
+Interventions are not entirely isolate phenomenon; by this I mean, the implementation of intervention $x$ might *reduce* or *improve* the effectiveness of intervention $y$. To model this behaviour, CarbonBalance consults an additional rules table, `InterventionEffects`.
+
+### Example scenario
+
+| Cause Intervention                     | Effected Intervention                                           |
+| -------------------------------------- | --------------------------------------------------------------- |
+| External Wall U-Value Enhancements | Optimised External Shading – Physical Solar Shading (Fixed) |
+
+Both of these interventions reduce unwanted heat transfer through the building envelope. Wall insulation improves thermal resistance, while external shading reduces solar heat gain. However, once insulation has already been improved, the additional benefit from shading is reduced because some of the thermal performance gain has already been achieved.
+
+| id | cause_intervention | effected_intervention | metric_type | lower_bound | upper_bound | multiplier |
+| -- | ------------------ | --------------------- | ----------- | ----------- | ----------- | ---------- |
+| 1  | 12                 | 16                    | ratio       | 0.80        | 1.30        | 0.7        |
+
+This rule states:
+> If **External Wall U-Value Enhancements** have been applied, then **Optimised External Shading** becomes 30% less effective (multiplier 0.7). This is a [Moderate Negative](../architecture/scoring.md#effect-table), modelling diminishing returns from overlapping thermal strategies.
+
+
+
