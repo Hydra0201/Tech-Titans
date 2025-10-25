@@ -136,7 +136,7 @@ def apply_intervention(project_id: int):
             current_app.logger.exception("apply_intervention failed")
             return {"error": "server_error"}, 500
 
-    # ✅ verify with a fresh connection that the row actually exists
+    #  verify with a fresh connection that the row actually exists
     verified = False
     if not dry_run:
         with get_conn() as conn2:
