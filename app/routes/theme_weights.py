@@ -63,55 +63,28 @@ def get_project_theme_weightings(project_id: int):
     g.user_id = payload.get("sub")
     g.user_role = payload.get("role")
 
-    with get_conn() as conn:
-        # 404 if project missing
-        proj = conn.execute(
-            text("SELECT 1 FROM projects WHERE id = :pid"),
-            {"pid": project_id},
-        ).scalar_one_or_none()
-        if proj is None:
-            return {"error": "not_found", "message": "project not found"}, 404
+    """
+    Return ALL themes with any saved scores for this project (LEFT JOIN).
+    weight_raw/weight_norm are null if not saved.
+    """
+    conn = get_conn()
 
-        rows = conn.execute(
-            text("""
-                SELECT
-                    t.id   AS id,
-                    t.name AS name,
-                    pts.weight_raw,
-                    pts.weight_norm
-                FROM themes AS t
-                LEFT JOIN project_theme_weightings AS pts
-                  ON pts.theme_id = t.id AND pts.project_id = :pid
-                ORDER BY t.id
-            """),
-            {"pid": project_id},
-        ).mappings().all()
-
-        items = [
-            {
-                "id": r["id"],
-                "name": r["name"],
-                "weight_raw": float(r["weight_raw"]) if r["weight_raw"] is not None else None,
-                "weight_norm": float(r["weight_norm"]) if r["weight_norm"] is not None else None,
-            }
-            for r in rows
-        ]
-
-        return jsonify({
-            "project_id": project_id,
-            "themes": items,  # includes weights for UI/logic
-        }), 200
-
-
-# ---------- Save project theme scores ----------
+    proj = conn.execute(
+        text("SELECT 1 FROM projects WHERE id = :pid"),
+        {"pid": project_id},
+    ).scalar_one_or_none()
+    if proj is None:
+        return {"error": "not_found", "message": "project not found"}, 404
     rows = conn.execute(
         text("""
             SELECT
                 t.id   AS id,
-                t.name AS name
+                t.name AS name,
+                pts.weight_raw,
+                pts.weight_norm
             FROM themes AS t
             LEFT JOIN project_theme_weightings AS pts
-              ON pts.theme_id = t.id AND pts.project_id = :pid
+            ON pts.theme_id = t.id AND pts.project_id = :pid
             ORDER BY t.id
         """),
         {"pid": project_id},
@@ -121,13 +94,16 @@ def get_project_theme_weightings(project_id: int):
         {
             "id": r["id"],
             "name": r["name"],
+            "weight_raw": float(r["weight_raw"]) if r["weight_raw"] is not None else None,
+            "weight_norm": float(r["weight_norm"]) if r["weight_norm"] is not None else None,
         }
         for r in rows
     ]
 
     return jsonify({
         "project_id": project_id,
-        "themes": items,   # UI uses this
+        "themes": items,
+        "weights": items,  
     }), 200
 
 
