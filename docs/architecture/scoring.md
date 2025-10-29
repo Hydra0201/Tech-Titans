@@ -82,7 +82,7 @@ After decaying the theme weight, all themes are **renormalised** so that they st
 
 | Theme                       | Raw Weight (Before) | Raw Weight (After 1 Selection, α=0.6) |
 | --------------------------- | ------------------- | ------------------------------------- |
-| Reducing Embodied Carbon    | 5                   | 3 *(→ decayed)*                       |
+| Reducing Embodied Carbon    | 5                   | 3 *($\rightarrow$ decayed)*           |
 | Reducing Operational Carbon | 3                   | 3                                     |
 | Renewable Energy Supply     | 2                   | 2                                     |
 

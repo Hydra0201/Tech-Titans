@@ -23,14 +23,20 @@ This will:
 If you install a new dependency, do the following to update requirements.txt:
 `pip freeze > requirements.txt`
 
+## Hosting
+
+Run the flask server by calling `flask run --port 5001`.
+> We host on port 5001 because this is where the frontend is looking.
+
 ## Running Tests
 
-To run the tests, run `pytest` in console. If this doesn't work, first do `pip install -e .`
+To run the tests, call `pytest` from the app/ directory in console. If this doesn't work, first do `pip install -e .`
 
 ## Documentation
 
-Run `mkdocs serve` from the top level directory.
+Run `mkdocs serve` from the top level directory. This serves the markdown files in the app/docs folder.
 
 ## Getting Help
 
 Feel free to email roghan@purelymail.com with any questions unanswered by the documentation.
+
